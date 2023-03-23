@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.net.URL;
 
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
@@ -66,13 +67,13 @@ public class InfoStore{
 
     public void addPageEntry(PageStore ps) throws IOException{
         // Assign new id equal to current number of pages
-        URLMap.put(ps.URL, pageEntryCount);
+        URLMap.put(ps.url, pageEntryCount);
         PageInfo.put(pageEntryCount, ps);
 
         pageEntryCount++;
     }
 
-    public Integer getURLID(String url) throws IOException{
+    public Integer getURLID(URL url) throws IOException{
         return (Integer) URLMap.get(url);
     }
 
@@ -93,7 +94,7 @@ public class InfoStore{
             {
                 pw.println("----------------");
                 pw.println(page.title);
-                pw.println(page.URL);
+                pw.println(page.url);
                 pw.println(page.lastModified.toString() + ", " + page.size);
                 for (int i = 0; i < page.keyfreq.size(); i++){
                     if (i == 9){
@@ -108,7 +109,7 @@ public class InfoStore{
                         break;
                     }
                     tempPage = (PageStore) PageInfo.get(page.childIDs.get(i));
-                    pw.println(tempPage.URL);
+                    pw.println(tempPage.url);
                 }
                 
                 pw.println("----------------");
