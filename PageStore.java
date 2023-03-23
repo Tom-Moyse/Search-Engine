@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 public class PageStore implements Serializable{
     public String URL;
-    public String title;
-    public LocalDateTime lastModified;
-    public int size;
-    public ArrayList<IntegerPair> keyfreq;
-    public ArrayList<Integer> childIDs;
-    public ArrayList<Integer> parentIDs;
+    public String title = null;
+    public LocalDateTime lastModified = null;
+    public int size = 0;
+    public ArrayList<IntegerPair> keyfreq = null;
+    public ArrayList<Integer> childIDs = null;
+    public ArrayList<Integer> parentIDs = null;
 
     PageStore(String URL, String title, LocalDateTime lm, int size, ArrayList<IntegerPair> keyfreq, ArrayList<Integer> childIDs, ArrayList<Integer> parentIDs){
         this.URL = URL;
@@ -19,5 +19,8 @@ public class PageStore implements Serializable{
         this.keyfreq = keyfreq;
         this.childIDs = childIDs;
         this.parentIDs = parentIDs;
+    }
+    PageStore(String URL){
+        this.URL = URL;
     }
 }

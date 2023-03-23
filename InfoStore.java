@@ -76,6 +76,10 @@ public class InfoStore{
         return (Integer) URLMap.get(url);
     }
 
+    public PageStore getURLInfo(Integer id) throws IOException{
+        return (PageStore) PageInfo.get(id);
+    }
+
     public void writeDB(){
         try{
             PrintWriter pw = new PrintWriter("spider_result.txt");
@@ -84,10 +88,9 @@ public class InfoStore{
             PageStore page;
             IntegerPair temp;
             PageStore tempPage;
-            System.out.println("Hi");
+
             while( (page = (PageStore)pages.next())!=null)
             {
-                System.out.println("Ho");
                 pw.println("----------------");
                 pw.println(page.title);
                 pw.println(page.URL);
