@@ -122,23 +122,4 @@ public class InfoStore{
             System.err.println("Caught IOException: " + e.getMessage());
         }
     }
-
-    public static void main(String[] args)
-	{
-		try
-		{
-			InfoStore info = new InfoStore();
-	
-			PageStore page = new PageStore("google.com", "Google", LocalDateTime.now(), 100, 
-                                            new ArrayList<IntegerPair>(), new ArrayList<Integer>(), new ArrayList<Integer>());
-
-            info.addPageEntry(page);
-            info.writeDB();
-		}
-		catch(IOException ex)
-		{
-			System.err.println(ex.toString());
-		}
-
-	}
 }

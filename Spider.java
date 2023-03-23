@@ -32,7 +32,7 @@ public class Spider {
     }
 
     private void crawlPages(String startURL, int maxIndexed) throws IOException{
-        toCrawl.add(new URLParent("http://www.cse.ust.hk", null));
+        toCrawl.add(new URLParent(startURL, maxIndexed));
 
         while (indexCount < maxIndexed && !toCrawl.isEmpty()){
             URLParent temp = toCrawl.remove(0);
@@ -95,5 +95,25 @@ public class Spider {
 		}
 
 		return links;
+	}
+
+    public static void main(String[] args)
+	{
+		try
+		{
+			Spider spider = new Spider();
+
+            if (args.length == 2){
+                //spider.crawlPages(args[0], Integer.parseInt(args[1]));
+            }
+            else{
+                System.out.println("Please provide arguments of form: 'Start URL' 'Max Page Count'");
+            }
+		}
+		catch(IOException ex)
+		{
+			System.err.println(ex.toString());
+		}
+
 	}
 }
