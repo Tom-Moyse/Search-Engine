@@ -93,11 +93,9 @@ public class Spider {
 
         ArrayList<URL> links = getLinksFromURL(url);
         ArrayList<String> text = getTextFromURL(url);
-        String title = text.get(0);
-        text.remove(0);
 
         indexChildPages(indexPageID, links);
-        indexTitle(indexPageID, title);
+        indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
     }
 
@@ -242,6 +240,9 @@ public class Spider {
 		while (sTokenizer.hasMoreElements()) {
 			tokens.add(sTokenizer.nextToken());
 		}
+
+        // Remove title from keywords
+        tokens.remove(0);
 
 		return tokens;
     }
