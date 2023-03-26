@@ -65,16 +65,17 @@ public class InfoStore{
         rm.close();
     }
 
-    public void addPageEntry(PageStore ps) throws IOException{
+    public Integer addPageEntry(PageStore ps) throws IOException{
         // Assign new id equal to current number of pages
-        URLMap.put(ps.url, pageEntryCount);
+        URLMap.put(ps.url.toString(), pageEntryCount);
         PageInfo.put(pageEntryCount, ps);
 
         pageEntryCount++;
+        return pageEntryCount;
     }
 
     public Integer getURLID(URL url) throws IOException{
-        return (Integer) URLMap.get(url);
+        return (Integer) URLMap.get(url.toString());
     }
 
     public PageStore getURLInfo(Integer id) throws IOException{

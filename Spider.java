@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.net.MalformedURLException;
+
 
 public class Spider {
     private class URLParent{
@@ -28,10 +28,12 @@ public class Spider {
     private ArrayList<URLParent> toCrawl;
     private int indexCount = 0;
     private InfoStore info;
+    private StopStem stopStem;
 
     Spider() throws IOException{
         info = new InfoStore();
         toCrawl = new ArrayList<URLParent>();
+        stopStem = new StopStem();
     }
 
     private void crawlPages(String startURL, int maxIndexed) throws IOException, ParserException{
@@ -46,8 +48,12 @@ public class Spider {
             Integer id = info.getURLID(url);
             PageStore currentPage = info.getURLInfo(id);
             // Check if URL has already been Indexed and remains unmodified
-            if (id != null && currentPage.indexed && currentPage.indexTime.isAfter(getModifiedDate(url))){
+            if (id != null && currentPage.indexed && currentPage.lastModified.isAfter(getModifiedDate(url))){
                 // Add new parent pointer if required
+
+                if (currentPage.parentIDs == null){
+                    currentPage.parentIDs = new ArrayList<Integer>();
+                }
                 if (!currentPage.parentIDs.contains(parentID)){
                     currentPage.parentIDs.add(parentID);
                 }
@@ -60,14 +66,19 @@ public class Spider {
         }
     }
 
-    private void indexPage(URL url) throws ParserException{
-        PageStore newPage = new PageStore(url);
+    private void indexPage(URL url) throws ParserException, IOException{
+        // Get associated URL page or create new associated URL page
+        Integer id = info.getURLID(url);
+        PageStore indexPage = info.getURLInfo(id);
+        if (indexPage == null){
+            indexPage = new PageStore(url);
+        }
 
         // First extract header information
         try{
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-            newPage.size = getSize(httpCon);
-            newPage.lastModified = getModifiedDate(httpCon);
+            indexPage.size = getSize(httpCon);
+            indexPage.lastModified = getModifiedDate(httpCon);
             httpCon.disconnect();
         } 
         catch (IOException e) {
@@ -75,12 +86,47 @@ public class Spider {
         }
         
         // Save meta information
-        newPage.title = getTitle(url);
-        newPage.indexTime = LocalDateTime.now();
-        
+        indexPage.title = getTitle(url);
+
+        Integer indexPageID = info.addPageEntry(indexPage);
+
         ArrayList<URL> links = getLinksFromURL(url);
         ArrayList<String> words = getWordsFromURL(url);
 
+       indexChildPages(indexPageID, links);
+
+    }
+
+    private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
+         // Assign list of child id's creating new page entries where required
+         ArrayList<Integer> childIDs = new ArrayList<Integer>();
+         Integer tempID;
+         PageStore childPage;
+
+         // Iterate over all child pages
+         for (URL link : childLinks) {
+             tempID = info.getURLID(link);
+ 
+             if (tempID == null){
+                 childPage = new PageStore(link);
+                 tempID = info.addPageEntry(childPage);
+             }
+ 
+             childIDs.add(tempID);
+             
+             // Add parent id to child page
+             childPage = info.getURLInfo(tempID);
+             if (childPage.parentIDs == null){
+                 childPage.parentIDs = new ArrayList<Integer>();
+             }
+             if (!childPage.parentIDs.contains(parentID)){
+                 childPage.parentIDs.add(parentID);
+             }
+         }
+
+         // Assign child id list to parent page
+         PageStore parentPage = info.getURLInfo(parentID);
+         parentPage.childIDs = childIDs;
     }
 
     private String getTitle(URL url){
