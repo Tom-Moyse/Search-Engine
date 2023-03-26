@@ -1,43 +1,36 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DocPostings implements Serializable{
-    private class Posting implements Serializable{
-        public Integer docID;
-        public ArrayList<Integer> positions;
-
-        Posting(Integer docID, ArrayList<Integer> positions){
-            this.docID = docID;
-            this.positions = positions;
-        }
-    }
-    
-    private ArrayList<Posting> postings;
+    private HashMap<Integer, ArrayList<Integer>> postings;
 
     DocPostings(){
-        postings = new ArrayList<Posting>();
+        postings = new HashMap<Integer, ArrayList<Integer>>();
     }
 
-    public void addPosting(Integer docID, ArrayList<Integer> positions){
-        postings.add(new Posting(docID, positions));
-    }
+    public void addPosting(Integer docID, Integer position){
+        ArrayList<Integer> positions = postings.get(docID);
 
-    public Posting getDocPosting(Integer docID){
-        for (Posting p : postings) {
-            if (p.docID.equals(docID)){ return p; }
+        if (positions == null){
+            ArrayList<Integer> pos = new ArrayList<Integer>();
+            pos.add(position);
+            postings.put(docID, pos);
+            return;
         }
-        return null;
+
+        positions.add(position);
     }
 
     public int getDocFreq(){
         return postings.size();
     }
-    
+
     public int getTFmax(){
         int max = 0;
-        for (Posting p : postings) {
-            if (p.positions.size() > max){
-                max = p.positions.size();
+        for (ArrayList<Integer> pos : postings.values()) {
+            if (pos.size() > max){
+                max = pos.size();
             }
         }
 

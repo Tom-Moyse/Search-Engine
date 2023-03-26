@@ -1,8 +1,7 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Map;
 import java.net.URL;
 
 import jdbm.RecordManager;
@@ -18,6 +17,7 @@ public class InfoStore{
     private HTree IDKeywordMap;
     private HTree IDPostingsMap;
     private Integer pageEntryCount = 0;
+    private Integer keywordCount = 0;
 
     InfoStore() throws IOException{
         // Initialize jdbm classes
@@ -65,8 +65,12 @@ public class InfoStore{
         }
         
         // Initialize page count
-        FastIterator ks = URLMap.keys();
-        while (ks.next() != null) { pageEntryCount++; }
+        FastIterator ks1 = URLMap.keys();
+        while (ks1.next() != null) { pageEntryCount++; }
+
+        // Initialize keyword count
+        FastIterator ks2 = KeywordIDMap.keys();
+        while (ks2.next() != null) { keywordCount++; }
     }
 
     public void finalize() throws IOException{
@@ -79,8 +83,15 @@ public class InfoStore{
         URLMap.put(ps.url.toString(), pageEntryCount);
         PageInfo.put(pageEntryCount, ps);
 
-        pageEntryCount++;
-        return pageEntryCount;
+        return pageEntryCount++;
+    }
+
+    public Integer addKeywordEntry(String kw) throws IOException{
+        // Assign new id equal to current number of keywords
+        KeywordIDMap.put(kw, keywordCount);
+        IDKeywordMap.put(keywordCount, kw);
+
+        return keywordCount++;
     }
 
     public Integer getURLID(URL url) throws IOException{
@@ -89,6 +100,10 @@ public class InfoStore{
 
     public PageStore getURLInfo(Integer id) throws IOException{
         return (PageStore) PageInfo.get(id);
+    }
+
+    public Integer getKeywordID(String keyword) throws IOException{
+        return (Integer) KeywordIDMap.get(keyword);
     }
 
     public DocPostings getKeywordPosting(Integer id) throws IOException{
@@ -101,7 +116,6 @@ public class InfoStore{
 
             FastIterator pages = PageInfo.values();
             PageStore page;
-            IntegerPair temp;
             PageStore tempPage;
 
             while( (page = (PageStore)pages.next())!=null)
@@ -110,19 +124,18 @@ public class InfoStore{
                 pw.println(page.title);
                 pw.println(page.url);
                 pw.println(page.lastModified.toString() + ", " + page.size);
-                for (int i = 0; i < page.keyfreq.size(); i++){
-                    if (i == 9){
-                        break;
-                    }
-                    temp = page.keyfreq.get(i);
-                    pw.print(IDKeywordMap.get(temp.a) + " " + temp.b + "; ");
+
+                int i = 0;
+                for (Map.Entry<Integer, Integer> entry : page.keyfreq.entrySet()) {
+                    if (i++ == 9) { break; }
+                    pw.print(IDKeywordMap.get(entry.getKey()) + " " + entry.getValue() + "; ");
                 }
                 pw.print('\n');
-                for (int i = 0; i < page.childIDs.size(); i++){
-                    if (i == 9){
-                        break;
-                    }
-                    tempPage = (PageStore) PageInfo.get(page.childIDs.get(i));
+                
+                i = 0;
+                for (Integer id : page.childIDs) {
+                    if (i++ == 9) { break; }
+                    tempPage = (PageStore) PageInfo.get(id);
                     pw.println(tempPage.url);
                 }
                 

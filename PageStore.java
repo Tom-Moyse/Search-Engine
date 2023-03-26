@@ -1,6 +1,7 @@
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.net.URL;
 
 public class PageStore implements Serializable{
@@ -8,12 +9,12 @@ public class PageStore implements Serializable{
     public String title = null;
     public LocalDateTime lastModified = null;
     public int size = 0;
-    public ArrayList<IntegerPair> keyfreq = null;
-    public ArrayList<Integer> childIDs = null;
-    public ArrayList<Integer> parentIDs = null;
+    public HashMap<Integer, Integer> keyfreq = null;
+    public HashSet<Integer> childIDs = null;
+    public HashSet<Integer> parentIDs = null;
     public Boolean indexed = false;
 
-    PageStore(URL url, String title, LocalDateTime lm, int size, ArrayList<IntegerPair> keyfreq, ArrayList<Integer> childIDs, ArrayList<Integer> parentIDs){
+    PageStore(URL url, String title, LocalDateTime lm, int size, HashMap<Integer, Integer> keyfreq, HashSet<Integer> childIDs, HashSet<Integer> parentIDs){
         this.url = url;
         this.title = title;
         this.lastModified = lm;

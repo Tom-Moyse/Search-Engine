@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -52,7 +53,7 @@ public class Spider {
                 // Add new parent pointer if required
 
                 if (currentPage.parentIDs == null){
-                    currentPage.parentIDs = new ArrayList<Integer>();
+                    currentPage.parentIDs = new HashSet<Integer>();
                 }
                 if (!currentPage.parentIDs.contains(parentID)){
                     currentPage.parentIDs.add(parentID);
@@ -91,15 +92,54 @@ public class Spider {
         Integer indexPageID = info.addPageEntry(indexPage);
 
         ArrayList<URL> links = getLinksFromURL(url);
-        ArrayList<String> words = getWordsFromURL(url);
+        ArrayList<String> text = getTextFromURL(url);
+        String title = text.get(0);
+        text.remove(0);
 
-       indexChildPages(indexPageID, links);
+        indexChildPages(indexPageID, links);
+        indexTitle(indexPageID, title);
+        indexBody(indexPageID, text);
+    }
+
+    private void indexBody(Integer pageID, ArrayList<String> text) throws IOException{
+        ArrayList<String> tokens = new ArrayList<String>();
+
+        // Split body into individual words
+        for (String line : text) {
+            StringTokenizer sTokenizer = new StringTokenizer(line," ");
+            while (sTokenizer.hasMoreElements()) {
+                tokens.add(sTokenizer.nextToken());
+            }
+        }
+        
+        // Index keywords (stopwords are included in keyword position as still indicate break in phrase)
+        for (int i = 0; i < tokens.size(); i++) {
+            String keyword = tokens.get(i);
+            if(!stopStem.isStopWord(keyword)){
+                indexKeyword(pageID, stopStem.stem(keyword), i);
+            }
+            
+        }
+		
+    }
+
+    private void indexKeyword(Integer pageID, String Keyword, Integer keypos) throws IOException{
+        // Add keyword to mapping table
+        Integer keywordID = info.getKeywordID(Keyword);
+        if (keywordID == null){
+            keywordID = info.addKeywordEntry(Keyword);
+        }
+
+        // Add posting
+        info.getKeywordPosting(keywordID).addPosting(pageID, keypos);
+
+        // Add to keyfreq
 
     }
 
     private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
          // Assign list of child id's creating new page entries where required
-         ArrayList<Integer> childIDs = new ArrayList<Integer>();
+         HashSet<Integer> childIDs = new HashSet<Integer>();
          Integer tempID;
          PageStore childPage;
 
@@ -117,7 +157,7 @@ public class Spider {
              // Add parent id to child page
              childPage = info.getURLInfo(tempID);
              if (childPage.parentIDs == null){
-                 childPage.parentIDs = new ArrayList<Integer>();
+                 childPage.parentIDs = new HashSet<Integer>();
              }
              if (!childPage.parentIDs.contains(parentID)){
                  childPage.parentIDs.add(parentID);
@@ -154,7 +194,7 @@ public class Spider {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(date), TimeZone.getDefault().toZoneId());
     }
 
-    private ArrayList<String> getWordsFromURL(URL url) throws ParserException{
+    private ArrayList<String> getTextFromURL(URL url) throws ParserException{
         // Get strings from webpage
         StringBean sb = new StringBean();
         sb.setLinks(false);
@@ -164,7 +204,7 @@ public class Spider {
 
         ArrayList<String> tokens = new ArrayList<String>();
         StringTokenizer sTokenizer = new StringTokenizer(longString,"\n");
-		
+
 		while (sTokenizer.hasMoreElements()) {
 			tokens.add(sTokenizer.nextToken());
 		}
