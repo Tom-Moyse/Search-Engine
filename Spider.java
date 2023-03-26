@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -47,7 +48,9 @@ public class Spider {
             Integer parentID = temp.parentID;
 
             Integer id = info.getURLID(url);
-            PageStore currentPage = info.getPageInfo(id);
+            PageStore currentPage = null;
+            if (id != null){ currentPage = info.getPageInfo(id); }
+            
             // Check if URL has already been Indexed and remains unmodified
             if (id != null && currentPage.indexed && currentPage.lastModified.isAfter(getModifiedDate(url))){
                 // Add new parent pointer if required
@@ -65,13 +68,23 @@ public class Spider {
             indexPage(url);
             indexCount++;
         }
+        System.out.println(info.getPageInfo(0).childIDs.toString());
+        System.out.println(info.getPageInfo(0).title);
+        info.finalize();
+        InfoStore info = new InfoStore();
+        System.out.println(info.getPageInfo(0).childIDs);
+        System.out.println(info.getPageInfo(0).title);
+        info.finalize();
     }
 
     private void indexPage(URL url) throws ParserException, IOException{
         // Get associated URL page or create new associated URL page
         Integer id = info.getURLID(url);
-        PageStore indexPage = info.getPageInfo(id);
-        if (indexPage == null){
+        PageStore indexPage;
+        if (id != null) { 
+            indexPage = info.getPageInfo(id); 
+        }
+        else{
             indexPage = new PageStore(url);
         }
 
@@ -97,6 +110,11 @@ public class Spider {
         indexChildPages(indexPageID, links);
         indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
+
+        indexPage.indexed = true;
+        System.out.println(indexPage.title);
+        System.out.println(indexPage.size);
+        System.out.println(indexPage.indexed);
     }
 
     private void indexTitle(Integer pageID, String title) throws IOException{
@@ -145,8 +163,12 @@ public class Spider {
         }
 
         // Add posting
-        info.getKeywordPostingTitle(keywordID).addPosting(pageID, keypos);
-
+        DocPostings dp = info.getKeywordPostingTitle(keywordID);
+        if (dp == null){
+            dp = new DocPostings();
+            info.addDocPostingTitle(keywordID, dp);
+        }
+        dp.addPosting(pageID, keypos);
     }
 
     private void indexKeyword(Integer pageID, String keyword, Integer keypos) throws IOException{
@@ -157,10 +179,18 @@ public class Spider {
         }
 
         // Add posting
-        info.getKeywordPostingBody(keywordID).addPosting(pageID, keypos);
+        DocPostings dp = info.getKeywordPostingBody(keywordID);
+        if (dp == null){
+            dp = new DocPostings();
+            info.addDocPostingBody(keywordID, dp);
+        }
+        dp.addPosting(pageID, keypos);
 
         // Add to keyfreq (page store forward index)
         PageStore page = info.getPageInfo(pageID);
+        if (page.keyfreq == null){
+            page.keyfreq = new HashMap<Integer, Integer>();
+        }
         Integer freq = page.keyfreq.get(keywordID);
         if (freq == null){
             page.keyfreq.put(keywordID, 1);
@@ -196,6 +226,7 @@ public class Spider {
              }
          }
 
+         
          // Assign child id list to parent page
          PageStore parentPage = info.getPageInfo(parentID);
          parentPage.childIDs = childIDs;
@@ -267,19 +298,16 @@ public class Spider {
 			Spider spider = new Spider();
 
             if (args.length == 2){
-                //spider.crawlPages(args[0], Integer.parseInt(args[1]));
+                spider.crawlPages(args[0], Integer.parseInt(args[1]));
             }
             else{
                 System.out.println("Please provide arguments of form: 'Start URL' 'Max Page Count'");
-                System.out.println(spider.getTextFromURL(new URL("http://www.cse.ust.hk")).toString());
             }
 		}
 		catch(IOException ex)
 		{
 			System.err.println(ex.toString());
 		}
-        catch (ParserException e){
-
-        }
+        catch (ParserException e){}
 	}
 }

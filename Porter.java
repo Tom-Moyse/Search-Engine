@@ -7,8 +7,6 @@
              input and returns the stem of this String again as a String.
 
 */ 
-import java.io.*;
-
 class NewString {
   public String str;
 

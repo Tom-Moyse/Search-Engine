@@ -103,6 +103,14 @@ public class InfoStore{
         return keywordCount++;
     }
 
+    public void addDocPostingBody(Integer id, DocPostings dp) throws IOException{
+        IDPostingsMapBody.put(id, dp);
+    }
+
+    public void addDocPostingTitle(Integer id, DocPostings dp) throws IOException{
+        IDPostingsMapTitle.put(id, dp);
+    }
+
     public Integer getURLID(URL url) throws IOException{
         return (Integer) URLMap.get(url.toString());
     }
@@ -123,44 +131,4 @@ public class InfoStore{
         return (DocPostings) IDPostingsMapTitle.get(id);
     }
 
-    public void writeDB(){
-        try{
-            PrintWriter pw = new PrintWriter("spider_result.txt");
-
-            FastIterator pages = PageInfo.values();
-            PageStore page;
-            PageStore tempPage;
-
-            while( (page = (PageStore)pages.next())!=null)
-            {
-                pw.println("----------------");
-                pw.println(page.title);
-                pw.println(page.url);
-                pw.println(page.lastModified.toString() + ", " + page.size);
-
-                int i = 0;
-                for (Map.Entry<Integer, Integer> entry : page.keyfreq.entrySet()) {
-                    if (i++ == 9) { break; }
-                    pw.print(IDKeywordMap.get(entry.getKey()) + " " + entry.getValue() + "; ");
-                }
-                pw.print('\n');
-                
-                i = 0;
-                for (Integer id : page.childIDs) {
-                    if (i++ == 9) { break; }
-                    tempPage = (PageStore) PageInfo.get(id);
-                    pw.println(tempPage.url);
-                }
-                
-                pw.println("----------------");
-            }
-            pw.close();
-        }
-        catch (FileNotFoundException e){
-            System.err.println("Caught FileNotFoundException: " + e.getMessage());
-        }
-        catch (IOException e){
-            System.err.println("Caught IOException: " + e.getMessage());
-        }
-    }
 }
