@@ -155,14 +155,16 @@ public class Spider {
     }
 
     private ArrayList<String> getWordsFromURL(URL url) throws ParserException{
+        // Get strings from webpage
         StringBean sb = new StringBean();
         sb.setLinks(false);
         sb.setCollapse(true);
         sb.setURL(url.toString());
         String longString = sb.getStrings();
 
-        StringTokenizer sTokenizer = new StringTokenizer(longString,"\n ");
-		ArrayList<String> tokens = new ArrayList<String>();
+        ArrayList<String> tokens = new ArrayList<String>();
+        StringTokenizer sTokenizer = new StringTokenizer(longString,"\n");
+		
 		while (sTokenizer.hasMoreElements()) {
 			tokens.add(sTokenizer.nextToken());
 		}

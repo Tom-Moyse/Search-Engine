@@ -16,43 +16,52 @@ public class InfoStore{
     private HTree PageInfo;
     private HTree KeywordIDMap;
     private HTree IDKeywordMap;
+    private HTree IDPostingsMap;
     private Integer pageEntryCount = 0;
 
     InfoStore() throws IOException{
         // Initialize jdbm classes
         rm = RecordManagerFactory.createRecordManager("RM");
-        long URLMapID = rm.getNamedObject("URLMap");
-        long PageInfoID = rm.getNamedObject("PageInfo");
-        long KeywordIDMapID = rm.getNamedObject("KeywordIDMap");
-        long IDKeywordMapID = rm.getNamedObject("IDKeywordMap");
+        long URLMap_ID = rm.getNamedObject("URLMap");
+        long PageInfo_ID = rm.getNamedObject("PageInfo");
+        long KeywordIDMap_ID = rm.getNamedObject("KeywordIDMap");
+        long IDKeywordMap_ID = rm.getNamedObject("IDKeywordMap");
+        long IDPostingsMap_ID = rm.getNamedObject("IDPostingsMap");
 
         // Create/Load existing records
-        if (URLMapID != 0){
-            URLMap = HTree.load(rm, URLMapID);
+        if (URLMap_ID != 0){
+            URLMap = HTree.load(rm, URLMap_ID);
         } else {
             URLMap = HTree.createInstance(rm);
             rm.setNamedObject("URLMap", URLMap.getRecid());
         }
 
-        if (PageInfoID != 0){
-            PageInfo = HTree.load(rm, PageInfoID);
+        if (PageInfo_ID != 0){
+            PageInfo = HTree.load(rm, PageInfo_ID);
         } else {
             PageInfo = HTree.createInstance(rm);
             rm.setNamedObject("PageInfo", PageInfo.getRecid());
         }
 
-        if (KeywordIDMapID != 0){
-            KeywordIDMap = HTree.load(rm, KeywordIDMapID);
+        if (KeywordIDMap_ID != 0){
+            KeywordIDMap = HTree.load(rm, KeywordIDMap_ID);
         } else {
             KeywordIDMap = HTree.createInstance(rm);
             rm.setNamedObject("KeywordIDMap", KeywordIDMap.getRecid());
         }
 
-        if (IDKeywordMapID != 0){
-            IDKeywordMap = HTree.load(rm, IDKeywordMapID);
+        if (IDKeywordMap_ID != 0){
+            IDKeywordMap = HTree.load(rm, IDKeywordMap_ID);
         } else {
             IDKeywordMap = HTree.createInstance(rm);
             rm.setNamedObject("IDKeywordMap", IDKeywordMap.getRecid());
+        }
+
+        if (IDPostingsMap_ID != 0){
+            IDPostingsMap = HTree.load(rm, IDPostingsMap_ID);
+        } else {
+            IDPostingsMap = HTree.createInstance(rm);
+            rm.setNamedObject("IDPostingsMap", IDPostingsMap.getRecid());
         }
         
         // Initialize page count
@@ -80,6 +89,10 @@ public class InfoStore{
 
     public PageStore getURLInfo(Integer id) throws IOException{
         return (PageStore) PageInfo.get(id);
+    }
+
+    public DocPostings getKeywordPosting(Integer id) throws IOException{
+        return (DocPostings) IDPostingsMap.get(id);
     }
 
     public void writeDB(){
