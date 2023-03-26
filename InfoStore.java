@@ -15,7 +15,8 @@ public class InfoStore{
     private HTree PageInfo;
     private HTree KeywordIDMap;
     private HTree IDKeywordMap;
-    private HTree IDPostingsMap;
+    private HTree IDPostingsMapBody;
+    private HTree IDPostingsMapTitle;
     private Integer pageEntryCount = 0;
     private Integer keywordCount = 0;
 
@@ -26,7 +27,8 @@ public class InfoStore{
         long PageInfo_ID = rm.getNamedObject("PageInfo");
         long KeywordIDMap_ID = rm.getNamedObject("KeywordIDMap");
         long IDKeywordMap_ID = rm.getNamedObject("IDKeywordMap");
-        long IDPostingsMap_ID = rm.getNamedObject("IDPostingsMap");
+        long IDPostingsMapBody_ID = rm.getNamedObject("IDPostingsMapBody");
+        long IDPostingsMapTitle_ID = rm.getNamedObject("IDPostingsMapTitle");
 
         // Create/Load existing records
         if (URLMap_ID != 0){
@@ -57,11 +59,18 @@ public class InfoStore{
             rm.setNamedObject("IDKeywordMap", IDKeywordMap.getRecid());
         }
 
-        if (IDPostingsMap_ID != 0){
-            IDPostingsMap = HTree.load(rm, IDPostingsMap_ID);
+        if (IDPostingsMapBody_ID != 0){
+            IDPostingsMapBody = HTree.load(rm, IDPostingsMapBody_ID);
         } else {
-            IDPostingsMap = HTree.createInstance(rm);
-            rm.setNamedObject("IDPostingsMap", IDPostingsMap.getRecid());
+            IDPostingsMapBody = HTree.createInstance(rm);
+            rm.setNamedObject("IDPostingsMapBody", IDPostingsMapBody.getRecid());
+        }
+
+        if (IDPostingsMapTitle_ID != 0){
+            IDPostingsMapTitle = HTree.load(rm, IDPostingsMapTitle_ID);
+        } else {
+            IDPostingsMapTitle = HTree.createInstance(rm);
+            rm.setNamedObject("IDPostingsMapTitle", IDPostingsMapTitle.getRecid());
         }
         
         // Initialize page count
@@ -106,8 +115,12 @@ public class InfoStore{
         return (Integer) KeywordIDMap.get(keyword);
     }
 
-    public DocPostings getKeywordPosting(Integer id) throws IOException{
-        return (DocPostings) IDPostingsMap.get(id);
+    public DocPostings getKeywordPostingBody(Integer id) throws IOException{
+        return (DocPostings) IDPostingsMapBody.get(id);
+    }
+
+    public DocPostings getKeywordPostingTitle(Integer id) throws IOException{
+        return (DocPostings) IDPostingsMapTitle.get(id);
     }
 
     public void writeDB(){

@@ -101,6 +101,24 @@ public class Spider {
         indexBody(indexPageID, text);
     }
 
+    private void indexTitle(Integer pageID, String title) throws IOException{
+        ArrayList<String> tokens = new ArrayList<String>();
+
+        // Split title into individual words
+        StringTokenizer sTokenizer = new StringTokenizer(title," ");
+        while (sTokenizer.hasMoreElements()) {
+            tokens.add(sTokenizer.nextToken());
+        }
+
+        // Index keywords (stopwords are included in keyword position as still indicate break in phrase)
+        for (int i = 0; i < tokens.size(); i++) {
+            String keyword = tokens.get(i);
+            if(!stopStem.isStopWord(keyword)){
+                indexTitleKeyword(pageID, stopStem.stem(keyword), i);
+            }      
+        }
+    }
+
     private void indexBody(Integer pageID, ArrayList<String> text) throws IOException{
         ArrayList<String> tokens = new ArrayList<String>();
 
@@ -119,18 +137,29 @@ public class Spider {
                 indexKeyword(pageID, stopStem.stem(keyword), i);
             }      
         }
-		
     }
 
-    private void indexKeyword(Integer pageID, String Keyword, Integer keypos) throws IOException{
+    private void indexTitleKeyword(Integer pageID, String keyword, Integer keypos) throws IOException{
         // Add keyword to mapping table
-        Integer keywordID = info.getKeywordID(Keyword);
+        Integer keywordID = info.getKeywordID(keyword);
         if (keywordID == null){
-            keywordID = info.addKeywordEntry(Keyword);
+            keywordID = info.addKeywordEntry(keyword);
         }
 
         // Add posting
-        info.getKeywordPosting(keywordID).addPosting(pageID, keypos);
+        info.getKeywordPostingTitle(keywordID).addPosting(pageID, keypos);
+
+    }
+
+    private void indexKeyword(Integer pageID, String keyword, Integer keypos) throws IOException{
+        // Add keyword to mapping table
+        Integer keywordID = info.getKeywordID(keyword);
+        if (keywordID == null){
+            keywordID = info.addKeywordEntry(keyword);
+        }
+
+        // Add posting
+        info.getKeywordPostingBody(keywordID).addPosting(pageID, keypos);
 
         // Add to keyfreq (page store forward index)
         PageStore page = info.getPageInfo(pageID);
