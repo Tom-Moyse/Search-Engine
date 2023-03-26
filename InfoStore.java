@@ -98,7 +98,7 @@ public class InfoStore{
         return (Integer) URLMap.get(url.toString());
     }
 
-    public PageStore getURLInfo(Integer id) throws IOException{
+    public PageStore getPageInfo(Integer id) throws IOException{
         return (PageStore) PageInfo.get(id);
     }
 

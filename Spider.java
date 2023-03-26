@@ -47,7 +47,7 @@ public class Spider {
             Integer parentID = temp.parentID;
 
             Integer id = info.getURLID(url);
-            PageStore currentPage = info.getURLInfo(id);
+            PageStore currentPage = info.getPageInfo(id);
             // Check if URL has already been Indexed and remains unmodified
             if (id != null && currentPage.indexed && currentPage.lastModified.isAfter(getModifiedDate(url))){
                 // Add new parent pointer if required
@@ -70,7 +70,7 @@ public class Spider {
     private void indexPage(URL url) throws ParserException, IOException{
         // Get associated URL page or create new associated URL page
         Integer id = info.getURLID(url);
-        PageStore indexPage = info.getURLInfo(id);
+        PageStore indexPage = info.getPageInfo(id);
         if (indexPage == null){
             indexPage = new PageStore(url);
         }
@@ -117,8 +117,7 @@ public class Spider {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 indexKeyword(pageID, stopStem.stem(keyword), i);
-            }
-            
+            }      
         }
 		
     }
@@ -133,8 +132,14 @@ public class Spider {
         // Add posting
         info.getKeywordPosting(keywordID).addPosting(pageID, keypos);
 
-        // Add to keyfreq
-
+        // Add to keyfreq (page store forward index)
+        PageStore page = info.getPageInfo(pageID);
+        Integer freq = page.keyfreq.get(keywordID);
+        if (freq == null){
+            page.keyfreq.put(keywordID, 1);
+            return;
+        }
+        page.keyfreq.replace(keywordID, freq + 1);
     }
 
     private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
@@ -155,7 +160,7 @@ public class Spider {
              childIDs.add(tempID);
              
              // Add parent id to child page
-             childPage = info.getURLInfo(tempID);
+             childPage = info.getPageInfo(tempID);
              if (childPage.parentIDs == null){
                  childPage.parentIDs = new HashSet<Integer>();
              }
@@ -165,7 +170,7 @@ public class Spider {
          }
 
          // Assign child id list to parent page
-         PageStore parentPage = info.getURLInfo(parentID);
+         PageStore parentPage = info.getPageInfo(parentID);
          parentPage.childIDs = childIDs;
     }
 
@@ -236,7 +241,7 @@ public class Spider {
             }
             else{
                 System.out.println("Please provide arguments of form: 'Start URL' 'Max Page Count'");
-                System.out.println(spider.getWordsFromURL(new URL("http://www.cse.ust.hk")).toString());
+                System.out.println(spider.getTextFromURL(new URL("http://www.cse.ust.hk")).toString());
             }
 		}
 		catch(IOException ex)
