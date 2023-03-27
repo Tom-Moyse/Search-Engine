@@ -100,12 +100,17 @@ public class Spider {
         ArrayList<URL> links = getLinksFromURL(url);
         ArrayList<String> text = getTextFromURL(url);
 
+        // indexChildPages(indexPageID, links);
+        // indexTitle(indexPageID, indexPage.title);
+        // indexBody(indexPageID, text);
+
         indexChildPages(indexPageID, links);
         indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
 
         indexPage.indexed = true;
 
+        info.updatePageEntry(indexPageID, indexPage);
         // Add new pages to crawl list
         toCrawl.addAll(links);
     }
@@ -165,9 +170,14 @@ public class Spider {
         DocPostings dp = info.getKeywordPostingTitle(keywordID);
         if (dp == null){
             dp = new DocPostings();
+            dp.addPosting(pageID, keypos);
             info.addDocPostingTitle(keywordID, dp);
         }
-        dp.addPosting(pageID, keypos);
+        else{
+            dp.addPosting(pageID, keypos);
+            info.updateDocPostingTitle(keywordID, dp);
+        }
+        
     }
 
     private void indexKeyword(Integer pageID, String keyword, Integer keypos) throws IOException{
@@ -181,9 +191,13 @@ public class Spider {
         DocPostings dp = info.getKeywordPostingBody(keywordID);
         if (dp == null){
             dp = new DocPostings();
+            dp.addPosting(pageID, keypos);
             info.addDocPostingBody(keywordID, dp);
         }
-        dp.addPosting(pageID, keypos);
+        else{
+            dp.addPosting(pageID, keypos);
+            info.updateDocPostingTitle(keywordID, dp);
+        }
 
         // Add to keyfreq (page store forward index)
         PageStore page = info.getPageInfo(pageID);
@@ -199,36 +213,35 @@ public class Spider {
     }
 
     private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
-         // Assign list of child id's creating new page entries where required
-         HashSet<Integer> childIDs = new HashSet<Integer>();
-         Integer tempID;
-         PageStore childPage;
+        // Assign list of child id's creating new page entries where required
+        HashSet<Integer> childIDs = new HashSet<Integer>();
+        Integer tempID;
+        PageStore childPage;
 
-         // Iterate over all child pages
-         for (URL link : childLinks) {
-             tempID = info.getURLID(link);
+        // Iterate over all child pages
+        for (URL link : childLinks) {
+            tempID = info.getURLID(link);
  
-             if (tempID == null){
-                 childPage = new PageStore(link);
-                 tempID = info.addPageEntry(childPage);
-             }
+            if (tempID == null){
+                childPage = new PageStore(link);
+                tempID = info.addPageEntry(childPage);
+            }
  
-             childIDs.add(tempID);
+            childIDs.add(tempID);
              
-             // Add parent id to child page
-             childPage = info.getPageInfo(tempID);
-             if (childPage.parentIDs == null){
-                 childPage.parentIDs = new HashSet<Integer>();
-             }
-             if (!childPage.parentIDs.contains(parentID)){
-                 childPage.parentIDs.add(parentID);
-             }
-         }
+            // Add parent id to child page
+            childPage = info.getPageInfo(tempID);
+            if (childPage.parentIDs == null){
+                childPage.parentIDs = new HashSet<Integer>();
+            }
+            childPage.parentIDs.add(parentID);
+            info.updatePageEntry(tempID, childPage);
+        }
 
          
-         // Assign child id list to parent page
-         PageStore parentPage = info.getPageInfo(parentID);
-         parentPage.childIDs = childIDs;
+        // Assign child id list to parent page
+        PageStore parentPage = info.getPageInfo(parentID);
+        parentPage.childIDs = childIDs;
     }
 
     private String getTitle(URL url){

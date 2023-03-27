@@ -85,6 +85,7 @@ public class InfoStore{
 
     public void finalize() throws IOException{
         // Must reinitialize PageInfo and DocPosting entries to synchronise object updates
+        /* 
         FastIterator pages = PageInfo.keys();
         Integer pageKey;
         PageStore page;
@@ -92,9 +93,11 @@ public class InfoStore{
         while( (pageKey = (Integer)pages.next())!=null) { pageKeys.add(pageKey); }
         for (Integer pk : pageKeys) {
             page = (PageStore) PageInfo.get(pk);
+            System.out.println("Key: " + pk + ", Indexed: " + page.indexed + ", Title: " + page.title);
             PageInfo.remove(pk);
             PageInfo.put(pk, page);
         }
+        
 
         FastIterator bdps = IDPostingsMapBody.keys();
         Integer bdpKey;
@@ -117,7 +120,8 @@ public class InfoStore{
             IDPostingsMapTitle.remove(tdpk);
             IDPostingsMapTitle.put(tdpk, tdp);
         }
-
+        */
+        
         rm.commit();
         rm.close();
     }
@@ -166,6 +170,21 @@ public class InfoStore{
         return (DocPostings) IDPostingsMapTitle.get(id);
     }
 
+    public void updatePageEntry(Integer key, PageStore ps) throws IOException{
+        PageInfo.remove(key);
+        PageInfo.put(key, ps);
+    }
+
+    public void updateDocPostingBody(Integer id, DocPostings dp) throws IOException{
+        IDPostingsMapBody.remove(id);
+        IDPostingsMapBody.put(id, dp);
+    }
+
+    public void updateDocPostingTitle(Integer id, DocPostings dp) throws IOException{
+        IDPostingsMapTitle.remove(id);
+        IDPostingsMapTitle.put(id, dp);
+    }
+
     public int getIndexedCount() throws IOException{
         FastIterator pages = PageInfo.values();
         PageStore page;
@@ -187,6 +206,6 @@ public class InfoStore{
             if (!page.indexed) { toIndex.add(page.url); }
         }
 
-        return getUnindexedList();
+        return toIndex;
     }
 }

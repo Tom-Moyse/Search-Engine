@@ -29,6 +29,8 @@ public class Test {
             }
             if (IDKeywordMap_ID != 0){
                 IDKeywordMap = HTree.load(rm, IDKeywordMap_ID);
+            }else{
+                return;
             }
 
             // Initialize File print writer
@@ -48,10 +50,14 @@ public class Test {
             // System.out.println(page.keyfreq);
 
 
-            while( (page = (PageStore)pages.next())!=null)
+            while( (page = (PageStore)pages.next()) != null )
             {
                 if (!page.indexed){
+                    //System.out.println(page.childIDs);
                     continue;
+                }
+                else{
+                    System.out.println("indexed");
                 }
                 pw.println("----------------");
                 pw.println(page.title);
