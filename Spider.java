@@ -5,11 +5,12 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 import org.htmlparser.beans.StringBean;
+import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
-import org.htmlparser.beans.FilterBean;
 import org.htmlparser.beans.LinkBean;
 import org.htmlparser.filters.TagNameFilter;
-import org.htmlparser.NodeFilter;
+import org.htmlparser.Node;
+import org.htmlparser.Parser;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -84,32 +85,31 @@ public class Spider {
         }
 
         // First extract header information
-        System.out.println("Fetch 1");
-        try{
-            HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-            indexPage.size = getSize(httpCon);
-            indexPage.lastModified = getModifiedDate(httpCon);
-            httpCon.disconnect();
-        } 
-        catch (IOException e) {
-            System.err.println(e.toString());
-        }
-        
+        System.out.println("Fetching webpage");
+        Parser parser = new Parser(url.toString());
+
+        HttpURLConnection httpCon = (HttpURLConnection) parser.getConnection();
+        System.out.println("Fetching page info");
+        indexPage.lastModified = getModifiedDate(httpCon);
+        indexPage.size = getSize(httpCon, parser);
+        parser.reset();
+
         // Save meta information
-        indexPage.title = getTitle(url);
+        indexPage.title = getTitleWithParser(parser);
+        parser.reset();
 
         Integer indexPageID = info.addPageEntry(indexPage);
+        
+        System.out.println("Fetching page text");
+        ArrayList<String> text = getTextWithParser(parser);
+        parser.reset();
 
-        System.out.println("Fetch 2");
-        ArrayList<URL> links = getLinksFromURL(url);
-        System.out.println("Fetch 3");
-        ArrayList<String> text = getTextFromURL(url);
+        System.out.println("Fetching page links");
+        ArrayList<URL> links = getLinksWithParser(parser);
 
-        // indexChildPages(indexPageID, links);
-        // indexTitle(indexPageID, indexPage.title);
-        // indexBody(indexPageID, text);
+        httpCon.disconnect();
 
-        System.out.println("Store");
+        System.out.println("Indexing Page");
         indexChildPages(indexPageID, links);
         indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
@@ -250,15 +250,20 @@ public class Spider {
         parentPage.childIDs = childIDs;
     }
 
-    private String getTitle(URL url){
-        FilterBean fb = new FilterBean();
-        fb.setFilters (new NodeFilter[] { new TagNameFilter ("TITLE") });
-        fb.setURL(url.toString());
-        return fb.getText();
+    private String getTitleWithParser(Parser p) throws ParserException{
+        NodeList nl = p.parse(null);
+        NodeList titlelist = nl.extractAllNodesThatMatch(new TagNameFilter ("TITLE"), true);
+        Node title = titlelist.elementAt(0);
+
+        return title.toPlainTextString();
     }
 
-    private int getSize(HttpURLConnection httpCon){
-        return httpCon.getContentLength();
+    private int getSize(HttpURLConnection httpCon, Parser p) throws ParserException{
+        int size = httpCon.getContentLength();
+
+        if (size != -1) { return size; }
+
+        return p.parse(null).toHtml().length();
     }
     
     private LocalDateTime getModifiedDate(HttpURLConnection httpCon){
@@ -276,12 +281,13 @@ public class Spider {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(date), TimeZone.getDefault().toZoneId());
     }
 
-    private ArrayList<String> getTextFromURL(URL url) throws ParserException{
+    private ArrayList<String> getTextWithParser(Parser p) throws ParserException{
         // Get strings from webpage
         StringBean sb = new StringBean();
         sb.setLinks(false);
         sb.setCollapse(true);
-        sb.setURL(url.toString());
+        
+        p.visitAllNodesWith(sb);
         String longString = sb.getStrings();
 
         ArrayList<String> tokens = new ArrayList<String>();
@@ -296,16 +302,15 @@ public class Spider {
 
 		return tokens;
     }
-    private ArrayList<URL> getLinksFromURL(URL url) throws ParserException
-	{
+    private ArrayList<URL> getLinksWithParser(Parser p) throws ParserException{   
 		LinkBean lb = new LinkBean();
-		lb.setURL(url.toString());
+		lb.setURL(p.getURL());
 		URL[] urls = lb.getLinks();
 
 		ArrayList<URL> links = new ArrayList<URL>();
-		for (URL u : urls) {
-			links.add(u);
-		}
+        for (URL url : urls) {
+            links.add(url);
+        }
 
 		return links;
 	}
@@ -335,6 +340,8 @@ public class Spider {
 		{
 			System.err.println(ex.toString());
 		}
-        catch (ParserException e){}
+        catch (ParserException e){
+            System.err.println(e.toString());
+        }
 	}
 }
