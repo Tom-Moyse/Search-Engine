@@ -52,6 +52,7 @@ public class Spider {
 
     private void crawlPages(int maxIndexed) throws IOException, ParserException{
         while (indexCount < maxIndexed && !toCrawl.isEmpty()){
+            System.out.println("Indexing Page: " + indexCount + 1);
             URL url = toCrawl.remove(0);
 
             Integer id = info.getURLID(url);
@@ -68,6 +69,7 @@ public class Spider {
         }
 
         info.finalize();
+        System.out.println("Crawling Complete");
     }
 
     private void indexPage(URL url) throws ParserException, IOException{
@@ -82,6 +84,7 @@ public class Spider {
         }
 
         // First extract header information
+        System.out.println("Fetch 1");
         try{
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
             indexPage.size = getSize(httpCon);
@@ -97,13 +100,16 @@ public class Spider {
 
         Integer indexPageID = info.addPageEntry(indexPage);
 
+        System.out.println("Fetch 2");
         ArrayList<URL> links = getLinksFromURL(url);
+        System.out.println("Fetch 3");
         ArrayList<String> text = getTextFromURL(url);
 
         // indexChildPages(indexPageID, links);
         // indexTitle(indexPageID, indexPage.title);
         // indexBody(indexPageID, text);
 
+        System.out.println("Store");
         indexChildPages(indexPageID, links);
         indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
@@ -257,6 +263,7 @@ public class Spider {
     
     private LocalDateTime getModifiedDate(HttpURLConnection httpCon){
         long date = httpCon.getLastModified();
+        if (date == 0){ date = httpCon.getDate(); }
 
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(date), TimeZone.getDefault().toZoneId());
     }
@@ -316,7 +323,7 @@ public class Spider {
             if (args.length == 1){
                 spider.crawlPages(Integer.parseInt(args[0]));
             }
-            if (args.length == 2){
+            else if (args.length == 2){
                 spider.newCrawl(args[0], Integer.parseInt(args[1]));
             }
             else{

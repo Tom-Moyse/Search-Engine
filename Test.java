@@ -56,9 +56,6 @@ public class Test {
                     //System.out.println(page.childIDs);
                     continue;
                 }
-                else{
-                    System.out.println("indexed");
-                }
                 pw.println("----------------");
                 pw.println(page.title);
                 pw.println(page.url);
@@ -99,6 +96,8 @@ public class Test {
                 pw.println("----------------");
             }
             pw.close();
+
+            System.out.println("Output complete, please see 'spider_result.txt' for details");
 		}
 		catch(IOException ex)
 		{
