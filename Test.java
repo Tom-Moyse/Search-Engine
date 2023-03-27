@@ -23,15 +23,12 @@ public class Test {
 
             if (PageInfo_ID != 0){
                 PageInfo = HTree.load(rm, PageInfo_ID);
-            } else {
-                PageInfo = HTree.createInstance(rm);
-                rm.setNamedObject("PageInfo", PageInfo.getRecid());
+            }else{
+                System.out.println("Please run spider before test program");
+                return;
             }
             if (IDKeywordMap_ID != 0){
                 IDKeywordMap = HTree.load(rm, IDKeywordMap_ID);
-            } else {
-                IDKeywordMap = HTree.createInstance(rm);
-                rm.setNamedObject("IDKeywordMap", IDKeywordMap.getRecid());
             }
 
             // Initialize File print writer

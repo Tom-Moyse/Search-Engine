@@ -166,4 +166,27 @@ public class InfoStore{
         return (DocPostings) IDPostingsMapTitle.get(id);
     }
 
+    public int getIndexedCount() throws IOException{
+        FastIterator pages = PageInfo.values();
+        PageStore page;
+        int indexCount = 0;
+
+        while( (page = (PageStore)pages.next()) != null ) {
+            if (page.indexed) { indexCount++; }
+        }
+
+        return indexCount;
+    }
+
+    public ArrayList<URL> getUnindexedList() throws IOException{
+        FastIterator pages = PageInfo.values();
+        PageStore page;
+        ArrayList<URL> toIndex = new ArrayList<URL>(pageEntryCount);
+
+        while( (page = (PageStore)pages.next()) != null ) {
+            if (!page.indexed) { toIndex.add(page.url); }
+        }
+
+        return getUnindexedList();
+    }
 }

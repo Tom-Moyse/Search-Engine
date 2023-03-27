@@ -19,33 +19,40 @@ import java.time.LocalDateTime;
 
 
 public class Spider {
-    private class URLParent{
-        public URL url;
-        public Integer parentID;
-        URLParent(URL url, Integer id){
-            this.url = url;
-            id = parentID;
-        }
-    }
-    private ArrayList<URLParent> toCrawl;
+    private ArrayList<URL> toCrawl;
     private int indexCount = 0;
     private InfoStore info;
     private StopStem stopStem;
 
     Spider() throws IOException{
         info = new InfoStore();
-        toCrawl = new ArrayList<URLParent>();
+        toCrawl = new ArrayList<URL>();
         stopStem = new StopStem();
+
+        // Restore index count and toCrawl list from db if applicable
+        indexCount = info.getIndexedCount();
+
+        if (indexCount == 0){
+            toCrawl = new ArrayList<URL>();
+        }
+        else{
+            toCrawl = info.getUnindexedList();
+        }
     }
 
-    private void crawlPages(String startURL, int maxIndexed) throws IOException, ParserException{
-        URL entryURL = new URL(startURL);
-        toCrawl.add(new URLParent(entryURL, null));
+    private void newCrawl(String startURL, int maxIndexed) throws IOException, ParserException{
+        if (indexCount != 0) {
+            System.out.println("To start a new crawl please first remove 'RM.db' and 'RM.lg'");
+            return;
+        }
 
+        toCrawl.add(new URL(startURL));
+        crawlPages(maxIndexed);
+    }
+
+    private void crawlPages(int maxIndexed) throws IOException, ParserException{
         while (indexCount < maxIndexed && !toCrawl.isEmpty()){
-            URLParent temp = toCrawl.remove(0);
-            URL url = temp.url;
-            Integer parentID = temp.parentID;
+            URL url = toCrawl.remove(0);
 
             Integer id = info.getURLID(url);
             PageStore currentPage = null;
@@ -53,15 +60,6 @@ public class Spider {
             
             // Check if URL has already been Indexed and remains unmodified
             if (id != null && currentPage.indexed && currentPage.lastModified.isAfter(getModifiedDate(url))){
-                // Add new parent pointer if required
-
-                if (currentPage.parentIDs == null){
-                    currentPage.parentIDs = new HashSet<Integer>();
-                }
-                if (!currentPage.parentIDs.contains(parentID)){
-                    currentPage.parentIDs.add(parentID);
-                }
-
                 continue;
             }
 
@@ -107,6 +105,9 @@ public class Spider {
         indexBody(indexPageID, text);
 
         indexPage.indexed = true;
+
+        // Add new pages to crawl list
+        toCrawl.addAll(links);
     }
 
     private void indexTitle(Integer pageID, String title) throws IOException{
@@ -293,13 +294,21 @@ public class Spider {
 	{
 		try
 		{
+            // File f = new File("RM.db");
+            // if(f.exists() && !f.isDirectory()) { 
+            //     System.out.println("Existing DB detected")
+            // }
 			Spider spider = new Spider();
-
+            
+            if (args.length == 1){
+                spider.crawlPages(Integer.parseInt(args[0]));
+            }
             if (args.length == 2){
-                spider.crawlPages(args[0], Integer.parseInt(args[1]));
+                spider.newCrawl(args[0], Integer.parseInt(args[1]));
             }
             else{
-                System.out.println("Please provide arguments of form: 'Start URL' 'Max Page Count'");
+                System.out.println("Please provide arguments of form: 'Start URL' 'Max Page Count' to start a new crawl");
+                System.out.println("Please provide arguments of form: 'Max Page Count' to continue an existing crawl");
             }
 		}
 		catch(IOException ex)
