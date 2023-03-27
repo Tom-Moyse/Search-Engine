@@ -2,6 +2,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.ArrayList;
 import java.net.URL;
 
 import jdbm.RecordManager;
@@ -83,6 +84,40 @@ public class InfoStore{
     }
 
     public void finalize() throws IOException{
+        // Must reinitialize PageInfo and DocPosting entries to synchronise object updates
+        FastIterator pages = PageInfo.keys();
+        Integer pageKey;
+        PageStore page;
+        ArrayList<Integer> pageKeys = new ArrayList<Integer>(pageEntryCount);
+        while( (pageKey = (Integer)pages.next())!=null) { pageKeys.add(pageKey); }
+        for (Integer pk : pageKeys) {
+            page = (PageStore) PageInfo.get(pk);
+            PageInfo.remove(pk);
+            PageInfo.put(pk, page);
+        }
+
+        FastIterator bdps = IDPostingsMapBody.keys();
+        Integer bdpKey;
+        DocPostings bdp;
+        ArrayList<Integer> bdpKeys = new ArrayList<Integer>();
+        while( (bdpKey = (Integer)bdps.next())!=null) { bdpKeys.add(bdpKey); }
+        for (Integer bdpk : bdpKeys) {
+            bdp = (DocPostings) IDPostingsMapBody.get(bdpk);
+            IDPostingsMapBody.remove(bdpk);
+            IDPostingsMapBody.put(bdpk, bdp);
+        }
+
+        FastIterator tdps = IDPostingsMapTitle.keys();
+        Integer tdpKey;
+        DocPostings tdp;
+        ArrayList<Integer> tdpKeys = new ArrayList<Integer>();
+        while( (tdpKey = (Integer)tdps.next())!=null) { tdpKeys.add(tdpKey); }
+        for (Integer tdpk : tdpKeys) {
+            tdp = (DocPostings) IDPostingsMapTitle.get(tdpk);
+            IDPostingsMapTitle.remove(tdpk);
+            IDPostingsMapTitle.put(tdpk, tdp);
+        }
+
         rm.commit();
         rm.close();
     }

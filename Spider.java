@@ -68,12 +68,7 @@ public class Spider {
             indexPage(url);
             indexCount++;
         }
-        System.out.println(info.getPageInfo(0).childIDs.toString());
-        System.out.println(info.getPageInfo(0).title);
-        info.finalize();
-        InfoStore info = new InfoStore();
-        System.out.println(info.getPageInfo(0).childIDs);
-        System.out.println(info.getPageInfo(0).title);
+
         info.finalize();
     }
 
@@ -112,9 +107,6 @@ public class Spider {
         indexBody(indexPageID, text);
 
         indexPage.indexed = true;
-        System.out.println(indexPage.title);
-        System.out.println(indexPage.size);
-        System.out.println(indexPage.indexed);
     }
 
     private void indexTitle(Integer pageID, String title) throws IOException{
@@ -130,7 +122,10 @@ public class Spider {
         for (int i = 0; i < tokens.size(); i++) {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
-                indexTitleKeyword(pageID, stopStem.stem(keyword), i);
+                String stemmedKeyword = stopStem.stem(keyword);
+                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
+                    indexTitleKeyword(pageID, stemmedKeyword, i);
+                }
             }      
         }
     }
@@ -150,7 +145,10 @@ public class Spider {
         for (int i = 0; i < tokens.size(); i++) {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
-                indexKeyword(pageID, stopStem.stem(keyword), i);
+                String stemmedKeyword = stopStem.stem(keyword);
+                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
+                    indexKeyword(pageID, stemmedKeyword, i);
+                }    
             }      
         }
     }

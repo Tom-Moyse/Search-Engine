@@ -42,13 +42,13 @@ public class Test {
             PageStore tempPage;
 
 
-            page = (PageStore)pages.next();
-            System.out.println(page.title);
-            System.out.println(page.url);
-            System.out.println(page.size);
-            System.out.println(page.indexed);
-            System.out.println(page.childIDs);
-            System.out.println(page.keyfreq);
+            // page = (PageStore)pages.next();
+            // System.out.println(page.title);
+            // System.out.println(page.url);
+            // System.out.println(page.size);
+            // System.out.println(page.indexed);
+            // System.out.println(page.childIDs);
+            // System.out.println(page.keyfreq);
 
 
             while( (page = (PageStore)pages.next())!=null)
@@ -68,7 +68,7 @@ public class Test {
                 
 
                 int i = 0;
-                System.out.println(page.keyfreq);
+
                 if (page.keyfreq != null){
                     for (Map.Entry<Integer, Integer> entry : page.keyfreq.entrySet()) {
                         if (i++ == 9) { break; }
