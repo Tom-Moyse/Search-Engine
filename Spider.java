@@ -43,6 +43,7 @@ public class Spider {
     }
 
     private void newCrawl(String startURL, int maxIndexed) throws IOException, ParserException{
+        // Set up parameters for new first time call
         if (indexCount != 0) {
             System.out.println("To start a new crawl please first remove 'RM.db' and 'RM.lg'");
             return;
@@ -53,22 +54,27 @@ public class Spider {
     }
 
     private void crawlPages(int maxIndexed) throws IOException, ParserException{
+        // Crawl as many pages as possible (without repeats)
+        // until max is reached
         while (indexCount < maxIndexed && !toCrawl.isEmpty()){
             System.out.println("Processing Page: " + (indexCount + 1));
             URL url = toCrawl.remove(0);
 
+            // Grab page id if exists
             Integer id = info.getURLID(url);
             PageStore currentPage = null;
             if (id != null){ currentPage = info.getPageInfo(id); }
             
-            // Check if URL has already been Indexed and remains unmodified
+            // Check if URL has already been Indexed and remains unmodified therefore skip
             if (id != null && currentPage.indexed != 0 && currentPage.lastModified.isAfter(getModifiedDate(url))){
                 continue;
             }
 
+            // Otherwise index new page
             if (indexPage(url)){ indexCount++; } 
         }
 
+        // Commit all changes to database
         info.finalize();
         System.out.println("Crawling Complete");
     }
@@ -86,7 +92,7 @@ public class Spider {
         }
 
 
-        // First extract header information
+        // Open url connection via parser
         System.out.println("Fetching webpage: " + url.toString());
         Parser parser;
         try{
@@ -97,7 +103,7 @@ public class Spider {
             return false;
         }
         
-
+        // Extract header information
         HttpURLConnection httpCon = (HttpURLConnection) parser.getConnection();
         System.out.println("Fetching page info");
         indexPage.lastModified = getModifiedDate(httpCon);
@@ -108,17 +114,20 @@ public class Spider {
         indexPage.title = getTitleWithParser(parser);
         parser.reset();
 
+        // Store page in db
         Integer indexPageID = info.addPageEntry(indexPage);
         
+        // Fetch text and links from html
         System.out.println("Fetching page text");
         ArrayList<String> text = getTextWithParser(parser);
         parser.reset();
-
         System.out.println("Fetching page links");
         ArrayList<URL> links = getLinksWithParser(parser);
 
+        // Drop http connection
         httpCon.disconnect();
 
+        // Run db indexing methods for links and text content
         System.out.println("Indexing Page");
         indexChildPages(indexPageID, links);
         indexTitle(indexPageID, indexPage.title);
@@ -183,7 +192,7 @@ public class Spider {
             keywordID = info.addKeywordEntry(keyword);
         }
 
-        // Add posting
+        // Add posting or edit existing posting
         DocPostings dp = info.getKeywordPostingTitle(keywordID);
         if (dp == null){
             dp = new DocPostings();
@@ -262,6 +271,7 @@ public class Spider {
     }
 
     private String getTitleWithParser(Parser p) throws ParserException{
+        // Use parser with filter to extract title from raw html
         NodeList nl = p.parse(null);
         NodeList titlelist = nl.extractAllNodesThatMatch(new TagNameFilter ("TITLE"), true);
         Node title = titlelist.elementAt(0);
@@ -270,6 +280,8 @@ public class Spider {
     }
 
     private int getSize(HttpURLConnection httpCon, Parser p) throws ParserException{
+        // Evaluate html size, initially via http header but failing that count
+        // characters from parsers extracted html string (slow)
         int size = httpCon.getContentLength();
 
         if (size != -1) { return size; }
@@ -278,13 +290,16 @@ public class Spider {
     }
     
     private LocalDateTime getModifiedDate(HttpURLConnection httpCon){
+        // Reads modified date header via existing http connection
         long date = httpCon.getLastModified();
         if (date == 0){ date = httpCon.getDate(); }
 
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(date), TimeZone.getDefault().toZoneId());
     }
 
+
     private LocalDateTime getModifiedDate(URL url) throws IOException{
+        // Reads modified date header via establishing new http connection
         HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
         long date = httpCon.getLastModified();
         httpCon.disconnect();
@@ -293,7 +308,7 @@ public class Spider {
     }
 
     private ArrayList<String> getTextWithParser(Parser p) throws ParserException{
-        // Get strings from webpage
+        // Get strings from webpage utilising string bean and existing parser connection
         StringBean sb = new StringBean();
         sb.setLinks(false);
         sb.setCollapse(true);
@@ -313,7 +328,10 @@ public class Spider {
 
 		return tokens;
     }
+
+
     private ArrayList<URL> getLinksWithParser(Parser p) throws ParserException{   
+        // Use link bean, with existing parser connection to extract links from page
 		LinkBean lb = new LinkBean();
 		lb.setURL(p.getURL());
 		URL[] urls = lb.getLinks();
@@ -340,10 +358,6 @@ public class Spider {
 	{
 		try
 		{
-            // File f = new File("RM.db");
-            // if(f.exists() && !f.isDirectory()) { 
-            //     System.out.println("Existing DB detected")
-            // }
 			Spider spider = new Spider();
             
             if (args.length == 1){

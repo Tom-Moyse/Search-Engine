@@ -9,9 +9,11 @@ public class DocPostings implements Serializable{
         postings = new HashMap<Integer, ArrayList<Integer>>();
     }
 
+    // Insert a new posting
     public void addPosting(Integer docID, Integer position){
         ArrayList<Integer> positions = postings.get(docID);
 
+        // Check if new document entry is require
         if (positions == null){
             ArrayList<Integer> pos = new ArrayList<Integer>();
             pos.add(position);
@@ -26,6 +28,7 @@ public class DocPostings implements Serializable{
         return postings.size();
     }
 
+    // Calculates max term frequency
     public int getTFmax(){
         int max = 0;
         for (ArrayList<Integer> pos : postings.values()) {

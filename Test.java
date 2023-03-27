@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
-import org.htmlparser.util.ParserException;
 
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
@@ -40,20 +39,9 @@ public class Test {
             PageStore page;
             PageStore tempPage;
 
-
-            // page = (PageStore)pages.next();
-            // System.out.println(page.title);
-            // System.out.println(page.url);
-            // System.out.println(page.size);
-            // System.out.println(page.indexed);
-            // System.out.println(page.childIDs);
-            // System.out.println(page.keyfreq);
-
-
             while( (page = (PageStore)pages.next()) != null )
             {
                 if (page.indexed != 1){
-                    //System.out.println(page.childIDs);
                     continue;
                 }
                 pw.println("----------------");
