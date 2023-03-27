@@ -12,7 +12,8 @@ public class PageStore implements Serializable{
     public HashMap<Integer, Integer> keyfreq = null;
     public HashSet<Integer> childIDs = null;
     public HashSet<Integer> parentIDs = null;
-    public Boolean indexed = false;
+    // 0 represents unindexed, 1 is successfully indexed, 2 is failed to index
+    public byte indexed = 0;
 
     PageStore(URL url, String title, LocalDateTime lm, int size, HashMap<Integer, Integer> keyfreq, HashSet<Integer> childIDs, HashSet<Integer> parentIDs){
         this.url = url;
@@ -25,6 +26,6 @@ public class PageStore implements Serializable{
     }
     PageStore(URL url){
         this.url = url;
-        this.indexed = false;
+        this.indexed = 0;
     }
 }

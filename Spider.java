@@ -15,6 +15,7 @@ import org.htmlparser.Parser;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -46,14 +47,14 @@ public class Spider {
             System.out.println("To start a new crawl please first remove 'RM.db' and 'RM.lg'");
             return;
         }
-
-        toCrawl.add(new URL(startURL));
+        
+        toCrawl.add(normalizeURL(new URL(startURL)));
         crawlPages(maxIndexed);
     }
 
     private void crawlPages(int maxIndexed) throws IOException, ParserException{
         while (indexCount < maxIndexed && !toCrawl.isEmpty()){
-            System.out.println("Indexing Page: " + indexCount + 1);
+            System.out.println("Processing Page: " + (indexCount + 1));
             URL url = toCrawl.remove(0);
 
             Integer id = info.getURLID(url);
@@ -61,19 +62,19 @@ public class Spider {
             if (id != null){ currentPage = info.getPageInfo(id); }
             
             // Check if URL has already been Indexed and remains unmodified
-            if (id != null && currentPage.indexed && currentPage.lastModified.isAfter(getModifiedDate(url))){
+            if (id != null && currentPage.indexed != 0 && currentPage.lastModified.isAfter(getModifiedDate(url))){
                 continue;
             }
 
-            indexPage(url);
-            indexCount++;
+            if (indexPage(url)){ indexCount++; } 
         }
 
         info.finalize();
         System.out.println("Crawling Complete");
     }
 
-    private void indexPage(URL url) throws ParserException, IOException{
+    // Returns true if successfully indexed
+    private boolean indexPage(URL url) throws ParserException, IOException{
         // Get associated URL page or create new associated URL page
         Integer id = info.getURLID(url);
         PageStore indexPage;
@@ -84,9 +85,18 @@ public class Spider {
             indexPage = new PageStore(url);
         }
 
+
         // First extract header information
-        System.out.println("Fetching webpage");
-        Parser parser = new Parser(url.toString());
+        System.out.println("Fetching webpage: " + url.toString());
+        Parser parser;
+        try{
+            parser = new Parser(url.toString());
+        } catch (ParserException e) {
+            System.out.println("Unable to index:  - Skipping page");
+            indexPage.indexed = 2;
+            return false;
+        }
+        
 
         HttpURLConnection httpCon = (HttpURLConnection) parser.getConnection();
         System.out.println("Fetching page info");
@@ -114,11 +124,12 @@ public class Spider {
         indexTitle(indexPageID, indexPage.title);
         indexBody(indexPageID, text);
 
-        indexPage.indexed = true;
+        indexPage.indexed = 1;
 
         info.updatePageEntry(indexPageID, indexPage);
         // Add new pages to crawl list
         toCrawl.addAll(links);
+        return true;
     }
 
     private void indexTitle(Integer pageID, String title) throws IOException{
@@ -309,11 +320,21 @@ public class Spider {
 
 		ArrayList<URL> links = new ArrayList<URL>();
         for (URL url : urls) {
-            links.add(url);
+            links.add(normalizeURL(url));
         }
 
 		return links;
 	}
+    
+    private URL normalizeURL(URL url){
+        // Basic URL normalization/fragment removal
+        try{
+            URI u = url.toURI();
+            if( u.getFragment() != null ) { u = new URI( u.getScheme(), u.getSchemeSpecificPart(), null ); }
+            url = u.toURL();
+        } catch (Exception e){ System.out.println("Failed to normalize url, using default"); }
+        return url;
+    }
 
     public static void main(String[] args)
 	{

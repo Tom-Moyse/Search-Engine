@@ -52,7 +52,7 @@ public class Test {
 
             while( (page = (PageStore)pages.next()) != null )
             {
-                if (!page.indexed){
+                if (page.indexed != 1){
                     //System.out.println(page.childIDs);
                     continue;
                 }
