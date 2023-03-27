@@ -75,6 +75,7 @@ public class Spider {
         }
 
         // Commit all changes to database
+        System.out.println("Saving information to DB");
         info.finalize();
         System.out.println("Crawling Complete");
     }
@@ -240,7 +241,7 @@ public class Spider {
 
     private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
         // Assign list of child id's creating new page entries where required
-        HashSet<Integer> childIDs = new HashSet<Integer>();
+        ArrayList<Integer> childIDs = new ArrayList<Integer>();
         Integer tempID;
         PageStore childPage;
 
@@ -258,7 +259,7 @@ public class Spider {
             // Add parent id to child page
             childPage = info.getPageInfo(tempID);
             if (childPage.parentIDs == null){
-                childPage.parentIDs = new HashSet<Integer>();
+                childPage.parentIDs = new ArrayList<Integer>();
             }
             childPage.parentIDs.add(parentID);
             info.updatePageEntry(tempID, childPage);
