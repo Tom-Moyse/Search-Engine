@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -66,7 +65,7 @@ public class Spider {
             if (id != null){ currentPage = info.getPageInfo(id); }
             
             // Check if URL has already been Indexed and remains unmodified therefore skip
-            if (id != null && currentPage.indexed != 0 && currentPage.lastModified.isAfter(getModifiedDate(url))){
+            if (id != null && currentPage.indexed != 0 && !getModifiedDate(url).isAfter(currentPage.lastModified)){
                 continue;
             }
 
