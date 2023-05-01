@@ -9,6 +9,14 @@ public class Search {
 
     Search() throws IOException{
         info = new InfoStore();
+        test();
+    }
+
+    private void test() throws IOException{
+        // 'movi' id is 12
+        Integer id = 12;
+        DocPostings dp = info.getKeywordPostingBody(id);
+        System.out.println(dp.getDocFreq());
     }
 
     public void EvaluateQuery(String q) throws IOException{
@@ -25,6 +33,7 @@ public class Search {
                 continue;
             }
             terms.add(stemmer.stem(temp));
+            System.out.println("Added '" + stemmer.stem(temp) + "' to the query");
         }
 
         Integer keywordID;
@@ -65,7 +74,7 @@ public class Search {
             scores[i] *= 1 / (queryLength * docLength);
         }
 
-        System.out.println(scores.toString());
+        System.out.println(Arrays.toString(scores));
     }
 
     // Computing partial score similarity reduces to returning keyword frequency in document

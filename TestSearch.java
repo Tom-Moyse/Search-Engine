@@ -6,13 +6,16 @@ public class TestSearch {
         try{
             Search searcher = new Search();
             Scanner inputReader = new Scanner(System.in);
-            System.out.println("Enter search query: ");
+            System.out.print("Enter search query: ");
 
             String query = "temp";
-            while (query != ""){
+            while (query.length() != 0){
                 query = inputReader.nextLine();
+                System.out.println("You queried: '" + query + "'");
                 searcher.EvaluateQuery(query);
+                System.out.print("Enter search query: ");
             }
+            System.out.println();
         }
         catch(IOException ex)
         {
