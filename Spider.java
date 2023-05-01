@@ -223,6 +223,7 @@ public class Spider {
 
         // Add posting
         DocPostings dp = info.getKeywordPostingBody(keywordID);
+
         if (dp == null){
             dp = new DocPostings();
             dp.addPosting(pageID, keypos);
@@ -230,7 +231,7 @@ public class Spider {
         }
         else{
             dp.addPosting(pageID, keypos);
-            info.updateDocPostingTitle(keywordID, dp);
+            info.updateDocPostingBody(keywordID, dp);
         }
 
         // Add to keyfreq (page store forward index)
