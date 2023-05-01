@@ -39,4 +39,12 @@ public class DocPostings implements Serializable{
     public int getTFmax(){
         return tfmax;
     }
+
+    public Integer[] getDocumentIDs(){
+        return (Integer[]) postings.keySet().toArray();
+    }
+
+    public ArrayList<Integer> getPositionList(Integer docID){
+        return postings.get(docID);
+    }
 }
