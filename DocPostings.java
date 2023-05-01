@@ -1,6 +1,7 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class DocPostings implements Serializable{
     private HashMap<Integer, ArrayList<Integer>> postings;
@@ -41,7 +42,7 @@ public class DocPostings implements Serializable{
     }
 
     public Integer[] getDocumentIDs(){
-        return (Integer[]) postings.keySet().toArray();
+        return postings.keySet().toArray(new Integer[0]);
     }
 
     public ArrayList<Integer> getPositionList(Integer docID){

@@ -1,6 +1,7 @@
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class Search {
@@ -39,6 +40,7 @@ public class Search {
             }
 
             dp = info.getKeywordPostingBody(keywordID);
+            System.out.println(Arrays.toString(dp.getDocumentIDs()));
             for (Integer docid : dp.getDocumentIDs()) {
                 scores[docid] += computeSimilarity(docid, keywordID);
             }
