@@ -30,7 +30,7 @@ public class Search {
                 phrase_length = 1;
                 buffer = "";
             }
-            else if (!phrase && c == ' '){ 
+            else if (!phrase && c == ' '){
                 if (!stemmer.isStopWord(buffer)) {
                     terms.add(stemmer.stem(buffer));
                 }
@@ -40,6 +40,8 @@ public class Search {
 
             if (phrase && c == ' '){ phrase_length++; }
         }
+        // Add final term word if required
+        if (buffer != "" && !stemmer.isStopWord(buffer)){ terms.add(stemmer.stem(buffer)); }
         
         ArrayList<String[]> stemmedBigrams = new ArrayList<String[]>();
         ArrayList<String[]> stemmedTrigrams = new ArrayList<String[]>();
@@ -47,7 +49,7 @@ public class Search {
 
         // Stem bigram phrases
         for (String bigram : bigrams) {
-            String[] stemmed = bigram.split(" ", 1); 
+            String[] stemmed = bigram.split(" ", 2); 
             for (int i = 0; i < stemmed.length; i++){
                 if (invalid = stemmer.isStopWord(stemmed[i])){ break; }
                 stemmed[i] = stemmer.stem(stemmed[i]);
@@ -57,10 +59,11 @@ public class Search {
                 stemmedBigrams.add(stemmed);
             }
         }
+        
         // Stem trigram phrases
         invalid = false;
         for (String trigram : trigrams) {
-            String[] stemmed = trigram.split(" ", 2); 
+            String[] stemmed = trigram.split(" ", 3); 
             for (int i = 0; i < stemmed.length; i++){
                 if (invalid = stemmer.isStopWord(stemmed[i])){ break; }
                 stemmed[i] = stemmer.stem(stemmed[i]);
@@ -77,6 +80,7 @@ public class Search {
 
         // Sum partial similarities for terms
         for (String term : terms) {
+            System.out.println("Term: " + term);
             if ((keywordID = info.getKeywordID(term)) == null){
                 System.out.println("Stemmed keyword: " + term + " not found");
                 continue;
@@ -91,6 +95,7 @@ public class Search {
         // Sum partial similarities for bigrams
         for (String[] bigram: stemmedBigrams){
             dp = computeBigramDP(bigram);
+
 
             for (Integer docid : dp.getDocumentIDs()) {
                 scores[docid] += computeSimilarity(dp, docid);
@@ -159,7 +164,7 @@ public class Search {
         for (Integer docID : w1Docs) {
             if ((w2Positions = w2.getPositionList(docID)) == null){ continue; }
             w1Positions = w1.getPositionList(docID);
-
+            System.out.println("Doc ID: " + docID);
             // Check for consecutive terms
             int w1ind = 0;
             int w2ind = 0;
@@ -170,11 +175,11 @@ public class Search {
                 t2 = w2Positions.get(w2ind).intValue();
                 if (t1 + 1 == t2){
                     newDP.addPosting(docID, 0);
-                    t1++;
-                    t2++;
+                    w1ind++;
+                    w2ind++;
                 }
-                else if (t1 < t2) { t1++; }
-                else { t2++; }
+                else if (t1 < t2) { w1ind++; }
+                else { w2ind++; }
             }
         }
 
@@ -215,13 +220,13 @@ public class Search {
                 t3 = w3Positions.get(w3ind).intValue();
                 if (t1 + 1 == t2 && t2 + 1 == t3){
                     newDP.addPosting(docID, 0);
-                    t1++;
-                    t2++;
-                    t3++;
+                    w1ind++;
+                    w2ind++;
+                    w3ind++;
                 }
-                else if (t1 <= t2 && t1 <= t3) { t1++; }
-                else if (t2 <= t1 && t2 <= t3) { t2++; }
-                else { t3++; }
+                else if (t1 <= t2 && t1 <= t3) { w1ind++; }
+                else if (t2 <= t1 && t2 <= t3) { w2ind++; }
+                else { w3ind++; }
             }
         }
 

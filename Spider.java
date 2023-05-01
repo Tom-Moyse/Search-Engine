@@ -161,7 +161,7 @@ public class Spider {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
-                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
+                if (stemmedKeyword != ""){
                     indexTitleKeyword(pageID, stemmedKeyword, i);
                 }
             }      
@@ -185,7 +185,7 @@ public class Spider {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
-                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
+                if (stemmedKeyword != ""){
                     indexKeyword(pageID, stemmedKeyword, i - stopped);
                 }
                 else { stopped++; }    
