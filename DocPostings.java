@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 public class DocPostings implements Serializable{
     private HashMap<Integer, ArrayList<Integer>> postings;
-    private int tfmax = 0;
 
     DocPostings(){
         postings = new HashMap<Integer, ArrayList<Integer>>();
@@ -19,12 +18,10 @@ public class DocPostings implements Serializable{
             ArrayList<Integer> pos = new ArrayList<Integer>();
             pos.add(position);
             postings.put(docID, pos);
-            if (tfmax == 0) { tfmax = 1; } 
             return;
         }
 
         positions.add(position);
-        if (positions.size() > tfmax) { tfmax = positions.size(); }
     }
 
     public int getDocFreq(){
@@ -33,11 +30,6 @@ public class DocPostings implements Serializable{
 
     public int getTF(Integer docID){
         return postings.get(docID).size();
-    }
-
-    // Calculates max term frequency
-    public int getTFmax(){
-        return tfmax;
     }
 
     public Integer[] getDocumentIDs(){

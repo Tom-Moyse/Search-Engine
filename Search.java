@@ -78,10 +78,14 @@ public class Search {
     // Computing partial score similarity reduces to returning tf/tfmax*idf
     private double computeSimilarity(DocPostings dp, Integer docID) throws IOException{
         int tf = dp.getTF(docID);
-        int tfmax = dp.getTFmax();
         double df = dp.getDocFreq();
         double idf = Math.log(info.getIndexedCount() / df);
         //System.out.println(tf + " " + tfmax + " " + df + " " + idf);
+        // Compute tfmax
+        int tfmax = 0;
+        for (int f: info.getPageInfo(docID).keyfreq.values()){
+            if (f > tfmax){ tfmax = f; }
+        }
         return tf * idf / tfmax;
     }
 }
