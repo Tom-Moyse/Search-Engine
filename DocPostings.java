@@ -1,7 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 public class DocPostings implements Serializable{
     private HashMap<Integer, ArrayList<Integer>> postings;
@@ -20,11 +19,11 @@ public class DocPostings implements Serializable{
             ArrayList<Integer> pos = new ArrayList<Integer>();
             pos.add(position);
             postings.put(docID, pos);
+            if (tfmax == 0) { tfmax = 1; } 
             return;
         }
 
         positions.add(position);
-
         if (positions.size() > tfmax) { tfmax = positions.size(); }
     }
 
