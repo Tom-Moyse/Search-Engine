@@ -2,7 +2,6 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.StringTokenizer;
 
 public class Search {
     private InfoStore info;
@@ -26,12 +25,12 @@ public class Search {
             else if (phrase && c == '"') { 
                 phrase = false;
                 if (phrase_length == 2) { bigrams.add(buffer); }
-                else { trigrams.add(buffer); }
+                else if (phrase_length == 3) { trigrams.add(buffer); }
                 phrase_length = 1;
                 buffer = "";
             }
             else if (!phrase && c == ' '){
-                if (!stemmer.isStopWord(buffer)) {
+                if (buffer != "" && !stemmer.isStopWord(buffer)) {
                     terms.add(stemmer.stem(buffer));
                 }
                 buffer = "";
@@ -137,13 +136,16 @@ public class Search {
     private double computeSimilarity(DocPostings dp, Integer docID) throws IOException{
         int tf = dp.getTF(docID);
         double df = dp.getDocFreq();
-        double idf = Math.log(info.getIndexedCount() / df);
-        //System.out.println(tf + " " + tfmax + " " + df + " " + idf);
+        double idf = Math.log(info.getIndexedCount() / df) / Math.log(2);
+        
         // Compute tfmax
         int tfmax = 0;
         for (int f: info.getPageInfo(docID).keyfreq.values()){
             if (f > tfmax){ tfmax = f; }
         }
+
+        System.out.println(tf + " " + tfmax + " " + df + " " + idf);
+
         return tf * idf / tfmax;
     }
 
