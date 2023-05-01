@@ -84,11 +84,15 @@ public class Spider {
         // Get associated URL page or create new associated URL page
         Integer id = info.getURLID(url);
         PageStore indexPage;
+        boolean newentry;
+
         if (id != null) { 
-            indexPage = info.getPageInfo(id); 
+            indexPage = info.getPageInfo(id);
+            newentry = false;
         }
         else{
             indexPage = new PageStore(url);
+            newentry = true;
         }
 
 
@@ -115,7 +119,9 @@ public class Spider {
         parser.reset();
 
         // Store page in db
-        Integer indexPageID = info.addPageEntry(indexPage);
+        Integer indexPageID;
+        if (newentry){ indexPageID = info.addPageEntry(indexPage); }
+        else{ indexPageID = id; }
         
         // Fetch text and links from html
         System.out.println("Fetching page text");
