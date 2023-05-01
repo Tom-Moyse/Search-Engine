@@ -173,14 +173,16 @@ public class Spider {
             }
         }
         
-        // Index keywords (stopwords are included in keyword position as still indicate break in phrase)
+        // Index keywords and remove stopwords
+        int stopped = 0;
         for (int i = 0; i < tokens.size(); i++) {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
                 if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
-                    indexKeyword(pageID, stemmedKeyword, i);
-                }    
+                    indexKeyword(pageID, stemmedKeyword, i - stopped);
+                }
+                else { stopped++; }    
             }      
         }
     }
