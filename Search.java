@@ -13,26 +13,69 @@ public class Search {
 
     public void EvaluateQuery(String q) throws IOException{
         ArrayList<String> terms = new ArrayList<String>();
+        ArrayList<String> bigrams = new ArrayList<String>();
+        ArrayList<String> trigrams = new ArrayList<String>();
         StopStem stemmer = new StopStem();
 
-        // Split title into individual words
-        StringTokenizer sTokenizer = new StringTokenizer(q," ");
-        String temp;
-        while (sTokenizer.hasMoreElements()) {
-            temp = sTokenizer.nextToken();
-            if (stemmer.isStopWord(temp)){
-                System.out.println("Removing stop word: " + temp + " from query");
-                continue;
+        // Split query into individual words/phrases
+        String buffer = "";
+        boolean phrase = false;
+        int phrase_length = 1;
+        for (char c : q.toCharArray()) {
+            if (!phrase && c == '"') { phrase = true; }
+            else if (phrase && c == '"') { 
+                phrase = false;
+                if (phrase_length == 2) { bigrams.add(buffer); }
+                else { trigrams.add(buffer); }
+                phrase_length = 1;
+                buffer = "";
             }
-            terms.add(stemmer.stem(temp));
+            else if (!phrase && c == ' '){ 
+                if (!stemmer.isStopWord(buffer)) {
+                    terms.add(stemmer.stem(buffer));
+                }
+                buffer = "";
+            }
+            else { buffer += c; }
+
+            if (phrase && c == ' '){ phrase_length++; }
+        }
+        
+        ArrayList<String[]> stemmedBigrams = new ArrayList<String[]>();
+        ArrayList<String[]> stemmedTrigrams = new ArrayList<String[]>();
+        boolean invalid = false;
+
+        // Stem bigram phrases
+        for (String bigram : bigrams) {
+            String[] stemmed = bigram.split(" ", 1); 
+            for (int i = 0; i < stemmed.length; i++){
+                if (invalid = stemmer.isStopWord(stemmed[i])){ break; }
+                stemmed[i] = stemmer.stem(stemmed[i]);
+                invalid = info.getKeywordID(stemmed[i]) == null;
+            }
+            if (!invalid){
+                stemmedBigrams.add(stemmed);
+            }
+        }
+        // Stem trigram phrases
+        invalid = false;
+        for (String trigram : trigrams) {
+            String[] stemmed = trigram.split(" ", 2); 
+            for (int i = 0; i < stemmed.length; i++){
+                if (invalid = stemmer.isStopWord(stemmed[i])){ break; }
+                stemmed[i] = stemmer.stem(stemmed[i]);
+                invalid = info.getKeywordID(stemmed[i]) == null;
+            }
+            if (!invalid){
+                stemmedTrigrams.add(stemmed);
+            }
         }
 
         Integer keywordID;
         DocPostings dp;
-        // Should check this works to get N
         double[] scores = new double[info.getIndexedCount()];
 
-        // Sum partial similarities
+        // Sum partial similarities for terms
         for (String term : terms) {
             if ((keywordID = info.getKeywordID(term)) == null){
                 System.out.println("Stemmed keyword: " + term + " not found");
@@ -45,9 +88,27 @@ public class Search {
             }
         }
 
+        // Sum partial similarities for bigrams
+        for (String[] bigram: stemmedBigrams){
+            dp = computeBigramDP(bigram);
+
+            for (Integer docid : dp.getDocumentIDs()) {
+                scores[docid] += computeSimilarity(dp, docid);
+            }
+        }
+
+        // Sum partial similarities for trigrams
+        for (String[] trigram: stemmedTrigrams){
+            dp = computeTrigramDP(trigram);
+
+            for (Integer docid : dp.getDocumentIDs()) {
+                scores[docid] += computeSimilarity(dp, docid);
+            }
+        }
+
         // Normalize for cosine similarity
         PageStore page;
-        double queryLength = Math.sqrt(terms.size());
+        double queryLength = Math.sqrt(terms.size() + stemmedBigrams.size() + stemmedTrigrams.size());
         double docLength;
         int count;
         for (int i = 0; i < scores.length; i++){
