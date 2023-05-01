@@ -33,7 +33,6 @@ public class Search {
                 continue;
             }
             terms.add(stemmer.stem(temp));
-            System.out.println("Added '" + stemmer.stem(temp) + "' to the query");
         }
 
         Integer keywordID;
@@ -44,14 +43,13 @@ public class Search {
         // Sum partial similarities
         for (String term : terms) {
             if ((keywordID = info.getKeywordID(term)) == null){
-                System.out.println("Stemmed keyword :" + term + " not found");
+                System.out.println("Stemmed keyword: " + term + " not found");
                 continue;
             }
 
             dp = info.getKeywordPostingBody(keywordID);
-            System.out.println(Arrays.toString(dp.getDocumentIDs()));
             for (Integer docid : dp.getDocumentIDs()) {
-                scores[docid] += computeSimilarity(docid, keywordID);
+                scores[docid] += computeSimilarity(dp, docid);
             }
         }
 
@@ -66,7 +64,7 @@ public class Search {
 
             page = info.getPageInfo((Integer) i);
             for (Integer f : page.keyfreq.values()) {
-                count += f;
+                count += (f * f);
             }
 
             docLength = Math.sqrt(count);
@@ -77,10 +75,13 @@ public class Search {
         System.out.println(Arrays.toString(scores));
     }
 
-    // Computing partial score similarity reduces to returning keyword frequency in document
-    private int computeSimilarity(Integer docID, Integer keywordID) throws IOException{
-        PageStore page = info.getPageInfo(docID);
-
-        return page.keyfreq.get(keywordID);
+    // Computing partial score similarity reduces to returning tf/tfmax*idf
+    private double computeSimilarity(DocPostings dp, Integer docID) throws IOException{
+        int tf = dp.getTF(docID);
+        int tfmax = dp.getTFmax();
+        double df = dp.getDocFreq();
+        double idf = Math.log(info.getIndexedCount() / df);
+        //System.out.println(tf + " " + tfmax + " " + df + " " + idf);
+        return tf * idf / tfmax;
     }
 }
