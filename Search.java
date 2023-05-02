@@ -75,44 +75,65 @@ public class Search {
 
         Integer keywordID;
         DocPostings dp;
+        double[] bodyScores = computePageScores(terms, stemmedBigrams, stemmedTrigrams, false);
+        double[] titleScores = computePageScores(terms, stemmedBigrams, stemmedTrigrams, true);
+
+        System.out.println(Arrays.toString(bodyScores));
+        System.out.println(Arrays.toString(titleScores));
+    }
+
+    // Functions computes cosine similarity page body scores from query terms, bigrams and trigrams
+    private double[] computePageScores(ArrayList<String> terms, ArrayList<String[]> bigrams, ArrayList<String[]> trigrams, boolean isTitle) throws IOException{
+        Integer keywordID;
+        DocPostings dp;
         double[] scores = new double[info.getIndexedCount()];
 
         // Sum partial similarities for terms
         for (String term : terms) {
-            System.out.println("Term: " + term);
             if ((keywordID = info.getKeywordID(term)) == null){
                 System.out.println("Stemmed keyword: " + term + " not found");
                 continue;
             }
 
-            dp = info.getKeywordPostingBody(keywordID);
+            dp = null;
+            if (isTitle){
+                dp = info.getKeywordPostingTitle(keywordID);
+            }
+            else{
+                dp = info.getKeywordPostingBody(keywordID);
+            }
+
+            if (dp == null) { continue; }
+            
             for (Integer docid : dp.getDocumentIDs()) {
-                scores[docid] += computeSimilarity(dp, docid);
+                scores[docid] += computeSimilarity(dp, docid, isTitle);
             }
         }
 
         // Sum partial similarities for bigrams
-        for (String[] bigram: stemmedBigrams){
-            dp = computeBigramDP(bigram);
+        for (String[] bigram: bigrams){
 
+            dp = computeBigramDP(bigram, isTitle);
+            if (dp == null) { continue; }
 
             for (Integer docid : dp.getDocumentIDs()) {
-                scores[docid] += computeSimilarity(dp, docid);
+                scores[docid] += computeSimilarity(dp, docid, isTitle);
             }
         }
 
         // Sum partial similarities for trigrams
-        for (String[] trigram: stemmedTrigrams){
-            dp = computeTrigramDP(trigram);
-
+        for (String[] trigram: trigrams){
+            dp = computeTrigramDP(trigram, isTitle);
+            if (dp == null) { continue; }
+            
             for (Integer docid : dp.getDocumentIDs()) {
-                scores[docid] += computeSimilarity(dp, docid);
+                scores[docid] += computeSimilarity(dp, docid, isTitle);
             }
         }
 
         // Normalize for cosine similarity
         PageStore page;
-        double queryLength = Math.sqrt(terms.size() + stemmedBigrams.size() + stemmedTrigrams.size());
+        double queryLength = Math.sqrt(terms.size() + bigrams.size() + trigrams.size());
         double docLength;
         int count;
         for (int i = 0; i < scores.length; i++){
@@ -120,8 +141,15 @@ public class Search {
             count = 0;
 
             page = info.getPageInfo((Integer) i);
-            for (Integer f : page.keyfreq.values()) {
-                count += (f * f);
+            if (isTitle){
+                for (Integer f : page.keyfreqtitle.values()) {
+                    count += (f * f);
+                }
+            }
+            else{
+                for (Integer f : page.keyfreqbody.values()) {
+                    count += (f * f);
+                }
             }
 
             docLength = Math.sqrt(count);
@@ -129,20 +157,28 @@ public class Search {
             scores[i] *= 1 / (queryLength * docLength);
         }
 
-        System.out.println(Arrays.toString(scores));
+        return scores;
     }
 
     // Computing partial score similarity reduces to returning tf/tfmax*idf
-    private double computeSimilarity(DocPostings dp, Integer docID) throws IOException{
+    private double computeSimilarity(DocPostings dp, Integer docID, boolean isTitle) throws IOException{
         int tf = dp.getTF(docID);
         double df = dp.getDocFreq();
         double idf = Math.log(info.getIndexedCount() / df) / Math.log(2);
         
         // Compute tfmax
         int tfmax = 0;
-        for (int f: info.getPageInfo(docID).keyfreq.values()){
-            if (f > tfmax){ tfmax = f; }
+        if (isTitle){
+            for (int f: info.getPageInfo(docID).keyfreqtitle.values()){
+                if (f > tfmax){ tfmax = f; }
+            }
         }
+        else{
+            for (int f: info.getPageInfo(docID).keyfreqbody.values()){
+                if (f > tfmax){ tfmax = f; }
+            }
+        }
+        
 
         System.out.println(tf + " " + tfmax + " " + df + " " + idf);
 
@@ -150,10 +186,19 @@ public class Search {
     }
 
     // Phrase assumed to only contain valid stemmed keywords
-    private DocPostings computeBigramDP(String[] phrase) throws IOException{
+    private DocPostings computeBigramDP(String[] phrase, boolean isTitle) throws IOException{
         // Find phrase locations
-        DocPostings w1 = info.getKeywordPostingBody(info.getKeywordID(phrase[0]));
-        DocPostings w2 = info.getKeywordPostingBody(info.getKeywordID(phrase[1]));
+        DocPostings w1 = null;
+        DocPostings w2 = null;
+        if (isTitle){
+            w1 = info.getKeywordPostingTitle(info.getKeywordID(phrase[0]));
+            w2 = info.getKeywordPostingTitle(info.getKeywordID(phrase[1]));
+        }
+        else{
+            w1 = info.getKeywordPostingBody(info.getKeywordID(phrase[0]));
+            w2 = info.getKeywordPostingBody(info.getKeywordID(phrase[1]));
+        }
+        if (w1 == null || w2 == null){ return null; }
 
         Integer[] w1Docs = w1.getDocumentIDs();
 
@@ -189,11 +234,22 @@ public class Search {
     }
 
     // Phrase assumed to only contain valid stemmed keywords
-    private DocPostings computeTrigramDP(String[] phrase) throws IOException{
+    private DocPostings computeTrigramDP(String[] phrase, boolean isTitle) throws IOException{
         // Find phrase locations
-        DocPostings w1 = info.getKeywordPostingBody(info.getKeywordID(phrase[0]));
-        DocPostings w2 = info.getKeywordPostingBody(info.getKeywordID(phrase[1]));
-        DocPostings w3 = info.getKeywordPostingBody(info.getKeywordID(phrase[2]));
+        DocPostings w1 = null;
+        DocPostings w2 = null;
+        DocPostings w3 = null;
+        if (isTitle){
+            w1 = info.getKeywordPostingTitle(info.getKeywordID(phrase[0]));
+            w2 = info.getKeywordPostingTitle(info.getKeywordID(phrase[1]));
+            w3 = info.getKeywordPostingTitle(info.getKeywordID(phrase[2]));
+        }
+        else{
+            w1 = info.getKeywordPostingBody(info.getKeywordID(phrase[0]));
+            w2 = info.getKeywordPostingBody(info.getKeywordID(phrase[1]));
+            w3 = info.getKeywordPostingBody(info.getKeywordID(phrase[2]));
+        }
+        if (w1 == null || w2 == null || w3 == null){ return null; }
 
         Integer[] w1Docs = w1.getDocumentIDs();
 

@@ -9,7 +9,8 @@ public class PageStore implements Serializable{
     public String title = null;
     public LocalDateTime lastModified = null;
     public int size = 0;
-    public HashMap<Integer, Integer> keyfreq = null;
+    public HashMap<Integer, Integer> keyfreqbody = null;
+    public HashMap<Integer, Integer> keyfreqtitle = null;
     public ArrayList<Integer> childIDs = null;
     public ArrayList<Integer> parentIDs = null;
     // 0 represents unindexed, 1 is successfully indexed, 2 is failed to index

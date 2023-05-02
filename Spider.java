@@ -157,13 +157,15 @@ public class Spider {
         }
 
         // Index keywords (stopwords are included in keyword position as still indicate break in phrase)
+        int stopped = 0;
         for (int i = 0; i < tokens.size(); i++) {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
                 if (stemmedKeyword != ""){
-                    indexTitleKeyword(pageID, stemmedKeyword, i);
+                    indexTitleKeyword(pageID, stemmedKeyword, i - stopped);
                 }
+                else { stopped++; }
             }      
         }
     }
@@ -212,6 +214,17 @@ public class Spider {
             info.updateDocPostingTitle(keywordID, dp);
         }
         
+        // Add to keyfreq (page store forward index)
+        PageStore page = info.getPageInfo(pageID);
+        if (page.keyfreqtitle == null){
+            page.keyfreqtitle = new HashMap<Integer, Integer>();
+        }
+        Integer freq = page.keyfreqtitle.get(keywordID);
+        if (freq == null){
+            page.keyfreqtitle.put(keywordID, 1);
+            return;
+        }
+        page.keyfreqtitle.replace(keywordID, freq + 1);
     }
 
     private void indexKeyword(Integer pageID, String keyword, Integer keypos) throws IOException{
@@ -236,15 +249,15 @@ public class Spider {
 
         // Add to keyfreq (page store forward index)
         PageStore page = info.getPageInfo(pageID);
-        if (page.keyfreq == null){
-            page.keyfreq = new HashMap<Integer, Integer>();
+        if (page.keyfreqbody == null){
+            page.keyfreqbody = new HashMap<Integer, Integer>();
         }
-        Integer freq = page.keyfreq.get(keywordID);
+        Integer freq = page.keyfreqbody.get(keywordID);
         if (freq == null){
-            page.keyfreq.put(keywordID, 1);
+            page.keyfreqbody.put(keywordID, 1);
             return;
         }
-        page.keyfreq.replace(keywordID, freq + 1);
+        page.keyfreqbody.replace(keywordID, freq + 1);
     }
 
     private void indexChildPages(Integer parentID, ArrayList<URL> childLinks) throws IOException{
