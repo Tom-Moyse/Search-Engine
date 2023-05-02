@@ -1,7 +1,6 @@
 #! /usr/bin/bash
-rm -f RM.*
-rm -f spider_result.txt
-rm -f *.class
-javac -cp .:jars/* Spider.java
-javac -cp .:jars/* Test.java
-javac -cp .:jars/* TestSearch.java
+rm -f searchengine/files/RM.*
+rm -f searchengine/files/spider_result.txt
+rm -f searchengine/*.class
+javac -cp .:jars/* searchengine/Spider.java
+javac -cp .:jars/* searchengine/tests/TestSearch.java
