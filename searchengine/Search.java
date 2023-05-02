@@ -20,7 +20,7 @@ public class Search {
         ArrayList<String> terms = new ArrayList<String>();
         ArrayList<String> bigrams = new ArrayList<String>();
         ArrayList<String> trigrams = new ArrayList<String>();
-        StopStem stemmer = new StopStem(path+"/searchengine/helper/stopwords.txt");
+        StopStem stemmer = new StopStem(path+"/stopwords.txt");
 
         // Split query into individual words/phrases
         String buffer = "";

@@ -22,6 +22,5 @@ public class PageStore implements Serializable{
     // No - I don't want to make them private and add 20 interface methods
     public PageStore(URL url){
         this.url = url;
-        
     }
 }

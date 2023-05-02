@@ -10,7 +10,7 @@ import java.io.IOException;
 public class TestSearch {
     public static void main(String[] args) {
         try{
-            Search searcher = new Search("RM");
+            Search searcher = new Search(".");
             Scanner inputReader = new Scanner(System.in);
             System.out.print("Enter search query: ");
 

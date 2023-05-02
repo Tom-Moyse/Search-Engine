@@ -33,7 +33,7 @@ public class Spider {
     Spider() throws IOException{
         info = new InfoStore("RM");
         toCrawl = new ArrayList<URL>();
-        stopStem = new StopStem("searchengine/helper/stopwords.txt");
+        stopStem = new StopStem("stopwords.txt");
 
         // Restore index count and toCrawl list from db if applicable
         indexCount = info.getIndexedCount();
@@ -167,7 +167,7 @@ public class Spider {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
-                if (stemmedKeyword != ""){
+                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
                     indexTitleKeyword(pageID, stemmedKeyword, i - stopped);
                 }
                 else { stopped++; }
@@ -192,7 +192,7 @@ public class Spider {
             String keyword = tokens.get(i);
             if(!stopStem.isStopWord(keyword)){
                 String stemmedKeyword = stopStem.stem(keyword);
-                if (stemmedKeyword != ""){
+                if (stemmedKeyword != "" && !stopStem.isStopWord(stemmedKeyword)){
                     indexKeyword(pageID, stemmedKeyword, i - stopped);
                 }
                 else { stopped++; }    

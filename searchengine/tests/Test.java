@@ -3,6 +3,9 @@ package searchengine.tests;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
 
 import searchengine.structs.PageStore;
 import jdbm.RecordManager;
@@ -61,14 +64,31 @@ public class Test {
                 int i = 0;
 
                 if (page.keyfreqbody != null){
-                    for (Map.Entry<Integer, Integer> entry : page.keyfreqbody.entrySet()) {
-                        if (i++ == 9) { break; }
-                        pw.print(IDKeywordMap.get(entry.getKey()) + " " + entry.getValue() + "; ");
+
+                    // for (Map.Entry<Integer, Integer> entry : page.keyfreqbody.entrySet()) {
+                    //     if (i++ == 9) { break; }
+                    //     pw.print(IDKeywordMap.get(entry.getKey()) + " " + entry.getValue() + "; ");
+                    // }
+                    Map<Integer, Integer> sortedMap = 
+                        page.keyfreqbody.entrySet().stream()
+                        .sorted(Entry.<Integer, Integer>comparingByValue().reversed())
+                        .collect(Collectors.toMap(Entry<Integer, Integer>::getKey, Entry<Integer, Integer>::getValue,
+                                                 (e1, e2) -> e1, LinkedHashMap::new));
+                    int count = 0;
+                    for (Map.Entry<Integer, Integer> entry: sortedMap.entrySet()){
+                        if (count > 50){ break; }
+                        pw.print(IDKeywordMap.get(entry.getKey()));
+                        pw.print(entry.getValue());
+                        if (count != 50){
+                            pw.print(", ");
+                        }
+                        count++;
                     }
                 }
                 else{
                     System.out.println("Null keyfreq detected");
                 }
+                
                 
                 pw.print('\n');
                 

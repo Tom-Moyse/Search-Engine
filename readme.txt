@@ -12,10 +12,10 @@ java -cp .:jars/* Spider "400"
 
 
 To build test program 1:
-javac -cp .:jars/* Test.java
+javac -cp .:jars/* searchengine/tests/Test.java
 
 To run test program 1:
-java -cp .:jars/* Test
+java -cp .:jars/* searchengine/tests/Test
 
 To build test program 2:
 javac -cp .:jars/* searchengine/tests/TestSearch.java
