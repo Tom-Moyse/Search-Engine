@@ -57,8 +57,8 @@ public class Test {
 
                 int i = 0;
 
-                if (page.keyfreq != null){
-                    for (Map.Entry<Integer, Integer> entry : page.keyfreq.entrySet()) {
+                if (page.keyfreqbody != null){
+                    for (Map.Entry<Integer, Integer> entry : page.keyfreqbody.entrySet()) {
                         if (i++ == 9) { break; }
                         pw.print(IDKeywordMap.get(entry.getKey()) + " " + entry.getValue() + "; ");
                     }
