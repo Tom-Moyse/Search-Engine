@@ -16,7 +16,7 @@ public class Test {
 		try
 		{
             // Initialize DB
-            RecordManager rm = RecordManagerFactory.createRecordManager("searchengine/files/RM");
+            RecordManager rm = RecordManagerFactory.createRecordManager("RM");
             long PageInfo_ID = rm.getNamedObject("PageInfo");
             long IDKeywordMap_ID = rm.getNamedObject("IDKeywordMap");
 
@@ -36,7 +36,7 @@ public class Test {
             }
 
             // Initialize File print writer
-            PrintWriter pw = new PrintWriter("searchengine/files/spider_result.txt");
+            PrintWriter pw = new PrintWriter("spider_result.txt");
 
             FastIterator pages = PageInfo.values();
             PageStore page;

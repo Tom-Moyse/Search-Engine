@@ -10,8 +10,8 @@ import searchengine.helper.StopStem;
 public class Search {
     private InfoStore info;
 
-    public Search() throws IOException{
-        info = new InfoStore();
+    public Search(String db_path) throws IOException{
+        info = new InfoStore(db_path);
     }
 
     public SearchResult EvaluateQuery(String q) throws IOException{

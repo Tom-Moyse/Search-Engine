@@ -18,7 +18,7 @@ To run test program 1:
 java -cp .:jars/* Test
 
 To build test program 2:
-javac -cp .:jars/* TestSearch.java
+javac -cp .:jars/* searchengine/tests/TestSearch.java
 
 To run test program 2:
-java -cp .:jars/* TestSearch
+java -cp .:jars/* searchengine/tests/TestSearch

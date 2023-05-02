@@ -21,9 +21,9 @@ public class InfoStore{
     private Integer pageEntryCount = 0;
     private Integer keywordCount = 0;
 
-    InfoStore() throws IOException{
+    public InfoStore(String db_path) throws IOException{
         // Initialize jdbm classes
-        rm = RecordManagerFactory.createRecordManager("searchengine/files/RM");
+        rm = RecordManagerFactory.createRecordManager(db_path);
         long URLMap_ID = rm.getNamedObject("URLMap");
         long PageInfo_ID = rm.getNamedObject("PageInfo");
         long KeywordIDMap_ID = rm.getNamedObject("KeywordIDMap");
@@ -122,6 +122,10 @@ public class InfoStore{
 
     public Integer getKeywordID(String keyword) throws IOException{
         return (Integer) KeywordIDMap.get(keyword);
+    }
+
+    public String getIDKeyword(Integer id) throws IOException{
+        return (String) IDKeywordMap.get(id);
     }
 
     public DocPostings getKeywordPostingBody(Integer id) throws IOException{

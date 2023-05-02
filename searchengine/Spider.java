@@ -31,7 +31,7 @@ public class Spider {
     private StopStem stopStem;
 
     Spider() throws IOException{
-        info = new InfoStore();
+        info = new InfoStore("RM");
         toCrawl = new ArrayList<URL>();
         stopStem = new StopStem();
 
