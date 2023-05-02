@@ -33,7 +33,7 @@ public class Spider {
     Spider() throws IOException{
         info = new InfoStore("RM");
         toCrawl = new ArrayList<URL>();
-        stopStem = new StopStem();
+        stopStem = new StopStem("searchengine/helper/stopwords.txt");
 
         // Restore index count and toCrawl list from db if applicable
         indexCount = info.getIndexedCount();

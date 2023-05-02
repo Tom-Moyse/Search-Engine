@@ -4,6 +4,7 @@
 <%@ page import="java.time.LocalDateTime"%>
 <%@ page import="java.util.Collections"%>
 <%@ page import="java.util.Map"%>
+<%@ page import="java.util.LinkedHashMap"%>
 <%@ page import="java.util.Map.Entry"%>
 <%@ page import="java.util.stream.Collectors"%>
 
@@ -20,7 +21,7 @@
 </form>
 
 <%
-searchengine.Search mySearch = new searchengine.Search("webapps/searchengine/RM"); 
+searchengine.Search mySearch = new searchengine.Search("webapps/searchengine"); 
 searchengine.InfoStore info = new searchengine.InfoStore("webapps/searchengine/RM");
 
 if(request.getParameter("query-input")!=null)
@@ -47,28 +48,43 @@ if(request.getParameter("query-input")!=null)
             </tr>
             <tr>
                 <td></td>
-                <td><%=ps.lastModified.toString()%>, <%=ps.size%></td>
-            </tr>
-            <tr>
-                <td></td>
                 <td><%
                     Map<Integer, Integer> sortedMap = 
                         ps.keyfreqbody.entrySet().stream()
-                        .sorted(Entry.comparingByValue())
+                        .sorted(Entry.<Integer, Integer>comparingByValue().reversed())
                         .collect(Collectors.toMap(Entry<Integer, Integer>::getKey, Entry<Integer, Integer>::getValue,
-                                                 (e1, e2) -> e1, HashMap::new));
-                    int count = 0
+                                                 (e1, e2) -> e1, LinkedHashMap::new));
+                    int count = 0;
                     for (Map.Entry<Integer, Integer> entry: sortedMap.entrySet()){
-                        if (count > 4){ break; }
+                        if (count > 50){ break; }
                         out.print(info.getIDKeyword(entry.getKey()));
                         out.print(entry.getValue());
-                        if (count != 4){
+                        if (count != 50){
                             out.print(", ");
                         }
                         count++;
                     }
                     %></td>
             </tr>
+            <%
+            for (Integer pid: ps.parentIDs){
+            %>
+            <tr>
+                <td></td>
+                <td><%=info.getPageInfo(pid).url.toString()%></td>
+            </tr>
+            <%
+            }
+            for (Integer cid: ps.childIDs){
+            %>
+            <tr>
+                <td></td>
+                <td><%=info.getPageInfo(cid).url.toString()%></td>
+            </tr>
+            <%
+            }
+            %>
+            
         </table>
     <%
     }

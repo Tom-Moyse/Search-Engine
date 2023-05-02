@@ -9,16 +9,18 @@ import searchengine.helper.StopStem;
 
 public class Search {
     private InfoStore info;
+    private String path;
 
-    public Search(String db_path) throws IOException{
-        info = new InfoStore(db_path);
+    public Search(String path) throws IOException{
+        this.path = path;
+        info = new InfoStore(path+"/RM");
     }
 
     public SearchResult EvaluateQuery(String q) throws IOException{
         ArrayList<String> terms = new ArrayList<String>();
         ArrayList<String> bigrams = new ArrayList<String>();
         ArrayList<String> trigrams = new ArrayList<String>();
-        StopStem stemmer = new StopStem();
+        StopStem stemmer = new StopStem(path+"/searchengine/helper/stopwords.txt");
 
         // Split query into individual words/phrases
         String buffer = "";
