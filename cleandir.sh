@@ -4,3 +4,4 @@ rm -f spider_result.txt
 rm -f *.class
 javac -cp .:jars/* Spider.java
 javac -cp .:jars/* Test.java
+javac -cp .:jars/* TestSearch.java
